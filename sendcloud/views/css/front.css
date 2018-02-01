@@ -1,0 +1,115 @@
+#sendcloudshipping_service_point_picker {
+  margin-bottom: 0.85em;
+}
+#sendcloudshipping_service_point_picker .form-group {
+  border: 1px solid lightgray;
+  padding: 0.5em;
+}
+#sendcloudshipping_service_point_picker .form-group .btn {
+  display: block;
+  text-align: center;
+  width: 100%;
+  float:left;
+  clear: both;
+  cursor: pointer;
+}
+#sendcloudshipping_service_point_picker .form-group .sendcloudshipping-point-details {
+  margin-top: 0.3em;
+  float: left;
+  clear: both;
+}
+#sendcloudshipping_service_point_picker .form-group .sendcloudshipping-point-details .description {
+  font-size: 0.8em;
+}
+#sendcloudshipping_service_point_picker .form-group .sendcloudshipping-point-details .description b {
+  font-size: 1em;
+}
+@media screen and (min-width:768px) {
+  #sendcloudshipping_service_point_picker .form-group .btn {
+    width: auto;
+    text-align: left;
+    clear: none;
+  }
+  #sendcloudshipping_service_point_picker .form-group .sendcloudshipping-point-details {
+    clear: none;
+    margin-left: 0.7em;
+    margin-top: 0;
+  }
+  #sendcloudshipping_service_point_picker .form-group .sendcloudshipping-point-details .description {
+    font-size: 0.9em;
+  }
+  #sendcloudshipping_service_point_picker .form-group .sendcloudshipping-point-details .description b {
+    font-size: 1.1em;
+  }
+
+}
+#sendcloudshipping_service_point_picker .form-group .alert-warning {
+  height: 47px;
+  padding:15px;
+}
+#sendcloudshipping_service_point_picker .hidden {
+  display: none;
+}
+#carrier_area .delivery_option.disabled {
+  opacity: 0.5;
+}
+.sendcloudshipping-fullscreen {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  top: 0;
+}
+.sendcloudshipping-overlay {
+  background: #222;
+  opacity: 0.7;
+  z-index: 2147483646;
+}
+.sendcloudshipping-map {
+  z-index: 2147483647;
+}
+
+/* PrestaShop 1.5 overrides */
+.sendcloudshipping-ps15 .alert {
+  margin-top: 0.7em;
+  padding: 0.5em 0.7em;
+}
+.sendcloudshipping-ps15 .alert-warning {
+  border:1px solid #fdd531;
+  background-color: lightyellow;
+  color: #666;
+}
+.sendcloudshipping-ps15.order-confirmation {
+  box-sizing:border-box;
+  float: left;
+  width: 100%;
+  clear: both;
+  margin-top: 0.7em;
+  margin-bottom: 0.7em;
+}
+.sendcloudshipping-ps15.order-confirmation .page-subheading {
+  font-weight: 600;
+  font-size: 1.1em;
+  margin:0;
+  padding:0;
+  margin-bottom: 0.5em;
+}
+.sendcloudshipping-ps15.order-confirmation .point-details,
+.sendcloudshipping-ps15.order-confirmation .point-details dl,
+.sendcloudshipping-ps15.order-confirmation .point-details dl dt,
+.sendcloudshipping-ps15.order-confirmation .point-details dl dd,
+.sendcloudshipping-ps15.order-confirmation .point-details dl dd p {
+  padding: 0;
+  margin: 0;
+}
+
+.sendcloudshipping-ps15.order-confirmation .point-details dl dt {
+  font-weight: 300;
+  font-size: 1.1em;
+}
+.sendcloudshipping-ps15.order-confirmation .point-details dl dd {
+  font-size: 1em;
+}
+.sendcloudshipping-ps15.adresses_bloc .address_title .page-subheading {
+  font-size: 11px;
+}

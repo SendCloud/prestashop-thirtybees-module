@@ -1,0 +1,149 @@
+.sendcloud_shipping * {
+  box-sizing: border-box;
+}
+.sendcloud_shipping .bg-primary,
+.sendcloud_shipping .bg-success,
+.sendcloud_shipping .bg-danger,
+.sendcloud_shipping .bg-warning,
+.sendcloud_shipping .bg-info {
+    padding: 0.5em;
+}
+
+.sendcloud_shipping .sendcloud_shipping_notifications {
+  margin-bottom: 1em;
+}
+.sendcloud_shipping .sendcloud_shipping_connect .form-group {
+    margin-bottom: 1em;
+}
+.sendcloud_shipping .panel .panel-body .intro-text p {
+  margin-bottom: 2em;
+  margin-top: 2em;
+}
+
+.sendcloud_shipping .info ul {
+  list-style: none;
+  padding-left: 0;
+  margin-bottom: 0;
+}
+/* Overrides: PrestaShop 1.6 */
+
+
+/* Overrides: PrestaShop 1.5 */
+#content .sendcloud_shipping.ps15 .sendcloud_shipping_notifications .warn {
+  padding-bottom: 1em;
+}
+#content .sendcloud_shipping.ps15 .pull-right {
+  float: right;
+}
+#content .sendcloud_shipping.ps15 .row {
+  margin-left: -5px;
+  margin-right: -5px;
+}
+#content .sendcloud_shipping.ps15 .row:before,
+#content .sendcloud_shipping.ps15 .row:after,
+#content .sendcloud_shipping.ps15 .panel-body:after,
+#content .sendcloud_shipping.ps15 .panel-body:before {
+  content: " ";
+  display: table;
+  clear: both;
+}
+#content .sendcloud_shipping.ps15 .row:after,
+#content .sendcloud_shipping.ps15 .panel-heading:after,
+#content .sendcloud_shipping.ps15 .panel-footer:after,
+#content .sendcloud_shipping.ps15 .panel-body:after {
+  clear: both;
+}
+#content .sendcloud_shipping.ps15 dl {
+  padding: 0;
+  margin: 0;
+}
+#content .sendcloud_shipping.ps15 dl dt {
+  margin-bottom: 0.3em;
+}
+#content .sendcloud_shipping.ps15 dl dd {}
+#content .sendcloud_shipping.ps15 .alert {
+  border-left:1px solid;
+  border-right:1px solid;
+}
+#content .sendcloud_shipping.ps15 .alert-success {
+  background-color: #DCF4F9;
+  border-color: #25b9d7;
+  color: #1e94ab;
+}
+#content .sendcloud_shipping.ps15 .alert.alert-success li {
+
+}
+#content .sendcloud_shipping.ps15 .alert.alert-success a {}
+#content .sendcloud_shipping.ps15 .info {
+  padding-bottom: 1.3em;
+  padding-top: 1.3em;
+  padding-left: 45px;
+}
+#content .sendcloud_shipping.ps15 code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  background-color: #f9f2f4;
+  border-radius: 3px;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+#content .sendcloud_shipping.ps15 .panel {
+  position: relative;
+  padding: 20px;
+  margin-bottom: 20px;
+  border: 1px solid #CCCED7;
+  background-color: #EBEDF4;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-heading {
+  font-family: "Ubuntu Condensed",Helvetica,Arial,sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #555;
+  height: 32px;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-body {
+  padding: 15px;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-body .col-lg-9,
+#content .sendcloud_shipping.ps15 .panel .panel-body .col-lg-3 {
+  float: left;
+  position: relative;
+  min-height: 1px;
+  padding-left: 5px;
+  padding-right: 5px;
+}
+#content .sendcloud_shipping.ps15 .col-lg-9,
+#content .sendcloud_shipping.ps15 .panel .panel-body .intro-text {
+  width: 75%;
+}
+#content .sendcloud_shipping.ps15 .col-lg-3,
+#content .sendcloud_shipping.ps15 .panel .panel-body .api-permissions {
+  width: 25%;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-body .api-permissions ul {
+  list-style-type: disc;
+  list-style-position: inside;
+  padding-left: 1.5em;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-body .api-permissions ul li {
+  margin-bottom: 0.5em;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-footer {
+    margin: 0 -20px -20px;
+    height: 40px  ;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-footer .button {
+  font-size: 14px;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-footer .button:disabled {
+  opacity: 0.5;
+  color: #808080;
+  cursor: default;
+}
+#content .sendcloud_shipping.ps15 .panel .panel-footer fieldset {
+  border: none;
+  padding-top: 0;
+  padding-bottom: 0;
+}

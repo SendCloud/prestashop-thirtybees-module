@@ -1,0 +1,44 @@
+module_name: "SendCloud | Europe's Number 1 Shipping Tool"
+compatible_versions: 1.0.0+
+author: "SendCloud Global B.V."
+category: shipping
+localization:
+  - AD
+  - AT
+  - BE
+  - DE
+  - FR
+  - MC
+  - NL
+tags:
+  - sendcloud
+  - shipping
+  - parcel
+  - carrier
+  - service point
+  - webshop
+  - delivery
+  - dpd
+  - dhl
+  - ups
+  - postnl
+  - colissimo
+  - mondial relay
+  - coli privé
+  - chronopost
+description_short: SendCloud helps to grow your online store by optimizing the shipping process. Shipping packages have never been that easy!
+description: description.md
+images:
+  - splash.jpg
+  - features.jpg
+  - image-01.jpg
+  - image-02.jpg
+  - image-03.jpg
+  - image-04.jpg
+license: AFL
+php_version:
+  - 5.4
+  - 5.5
+  - 5.6
+  - 7.0
+  - 7.1

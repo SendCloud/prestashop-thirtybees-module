@@ -1,0 +1,46 @@
+.nav .sendcloudshipping-tab.service-point a {
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.tab-content .tab-pane.sendcloudshipping dt {
+  margin-bottom: 0.5em;
+}
+.tab-content .tab-pane.sendcloudshipping dd ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+/* PrestaShop 1.5 overrides */
+.ps15.sendcloudshipping {
+    background-color: #EBEDF4;
+    border: 1px solid #CCCED7;
+    color: #585A69;
+    font-size: 1.1em;
+    margin: 0;
+    padding: 1em;
+    margin-top: 2em;
+}
+.ps15.sendcloudshipping .visible-print {
+  font-size:13px;
+  font-weight: 700;
+  padding: 0.2em 0.5em;
+  margin:0;
+  margin-top: -1.9em;
+  background: #EBEDF4;
+  border: 1px solid #CCCED7;
+  display: inline-block;
+}
+.ps15.sendcloudshipping dl,
+.ps15.sendcloudshipping dd,
+.ps15.sendcloudshipping dt {
+  padding:0;
+  margin:0;
+}
+.ps15.sendcloudshipping dl {
+  margin-top: 0.7em
+}
+.ps15.sendcloudshipping dl dt {
+  font-weight: 700;
+  margin-bottom: 0.5em;
+}
