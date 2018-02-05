@@ -247,7 +247,7 @@ class AdminSendcloudController extends ModuleAdminController
             return false;
         }
 
-
+        $path = getenv('THIRTYBEES_VERSION') ? '/shops/thirtybees/connect/' : '/shops/prestashop/connect/';
         $data = $this->connector->getSettings();
         $shop = $this->context->shop;
 
@@ -259,7 +259,7 @@ class AdminSendcloudController extends ModuleAdminController
         );
 
         $connect_url = SendcloudTools::getPanelURL(
-            '/shops/prestashop/connect/',
+            $path,
             $query_params,
             SendcloudTools::isTrackingEnabled($this->module)
         );

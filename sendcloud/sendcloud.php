@@ -56,7 +56,7 @@ class Sendcloud extends CarrierModule
         $this->boostrap = true;
         $this->name = 'sendcloud';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.1.2';
+        $this->version = '1.1.3';
         $this->author = 'SendCloud Global B.V.';
         $this->author_uri = 'https://sendcloud.eu';
         $this->need_instance = false;
