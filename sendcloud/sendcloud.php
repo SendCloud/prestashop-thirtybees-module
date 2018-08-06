@@ -56,7 +56,7 @@ class Sendcloud extends CarrierModule
         $this->boostrap = true;
         $this->name = 'sendcloud';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.1.3';
+        $this->version = '1.1.4';
         $this->author = 'SendCloud Global B.V.';
         $this->author_uri = 'https://sendcloud.eu';
         $this->need_instance = false;
@@ -387,8 +387,7 @@ class Sendcloud extends CarrierModule
         $carrier = $this->connector->getOrSynchroniseCarrier();
 
         if ($cart->id_carrier != $carrier->id) {
-            // A user may not enable service points at all may
-            // selected another carrier.
+            // A user may not enable service points at all and have selected another carrier.
             return true;
         }
 

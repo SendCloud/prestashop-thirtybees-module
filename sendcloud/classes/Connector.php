@@ -315,8 +315,8 @@ class SendcloudConnector
         try {
             $carrier = $this->getCarrier();
         } catch (SendcloudUnsynchronisedCarrierException $e) {
+            $this->synchroniseCarrier($e->carrierFound, $e->currentCarrier);
             $carrier = $this->saveCarrier($e->carrierFound);
-            $this->synchroniseCarrier($carrier->id);
         }
         return $carrier;
     }
@@ -446,11 +446,18 @@ class SendcloudConnector
      * @see SendcloudConnector::getCarrier()
      * @param int $carrier_id
      */
-    public function synchroniseCarrier($carrier_id)
+    public function synchroniseCarrier($carrier_id, $previous_id = null)
     {
         $carrier = new Carrier($carrier_id);
 
-        $this->addCarrierGroups($carrier);
+        if (!$previous_id) {
+            $groups = Group::getGroups(true);
+        } else {
+            $previous = new Carrier((int)$previous_id);
+            $groups = $previous->getGroups();
+        }
+
+        $this->addCarrierGroups($carrier, $groups);
         $this->addCarrierLogo($carrier->id);
         $this->addCarrierRanges($carrier);
         $this->addCarrierRestrictions($carrier);
@@ -653,10 +660,9 @@ class SendcloudConnector
      *
      * @param Carrier $carrier
      */
-    private function addCarrierGroups(Carrier $carrier)
+    private function addCarrierGroups(Carrier $carrier, array $groups)
     {
         $db = Db::getInstance();
-        $groups = Group::getGroups(true);
 
         $tbl_carrier_group = _DB_PREFIX_ . 'carrier_group';
         $insert_sql = 'INSERT INTO `%1$s` VALUES (%2$d, %3$d)';
