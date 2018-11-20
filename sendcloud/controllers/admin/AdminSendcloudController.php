@@ -66,7 +66,7 @@ class AdminSendcloudController extends ModuleAdminController
      *
      * @return string
      */
-    public function setMedia()
+    public function setMedia($isNewTheme = false)
     {
         $assets_base = _MODULE_DIR_ . $this->module->name;
 
@@ -78,7 +78,7 @@ class AdminSendcloudController extends ModuleAdminController
             )
         );
 
-        return parent::setMedia();
+        return parent::setMedia($isNewTheme);
     }
 
     /**
