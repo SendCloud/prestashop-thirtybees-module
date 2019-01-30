@@ -726,7 +726,9 @@ class SendcloudConnector
     {
         $logo_src = realpath(dirname(__FILE__).'/../views/img/carrier_logo.jpg');
         $logo_dst = _PS_SHIP_IMG_DIR_.'/'.$carrier_id.'.jpg';
-        return copy($logo_src, $logo_dst);
+        if (!file_exists($logo_dst)) {
+            copy($logo_src, $logo_dst);
+        }
     }
 
     /**
