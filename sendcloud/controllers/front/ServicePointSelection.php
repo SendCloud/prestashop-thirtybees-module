@@ -38,8 +38,9 @@ class SendcloudServicePointSelectionModuleFrontController extends ModuleFrontCon
         }
 
         $module = $this->module;
+        $action = Tools::getValue('action', 'save');
         $details = Tools::getValue('service_point_data');
-        if (!$details) {
+        if (!$details && $action === 'save') {
             SendcloudTools::httpResponseCode(400);
             $this->ajaxDie(Tools::jsonEncode(array(
                 'error' => $module->getMessage('no_service_point')
@@ -47,7 +48,7 @@ class SendcloudServicePointSelectionModuleFrontController extends ModuleFrontCon
         }
 
         $pointData = Tools::jsonDecode($details);
-        if (!$pointData) {
+        if (!$pointData && $action === 'save') {
             SendcloudTools::httpResponseCode(400);
             $this->ajaxDie(Tools::jsonEncode(array(
                 'error' => $module->getMessage('unable_to_parse')
@@ -55,10 +56,20 @@ class SendcloudServicePointSelectionModuleFrontController extends ModuleFrontCon
         }
 
         $point = SendcloudServicePoint::getFromCart($cart->id);
-        $point->details = $details;
-        $point->save();
 
-        SendcloudTools::httpResponseCode(201);
+        switch ($action) {
+            case 'delete':
+                $point->delete();
+                break;
+
+            default:
+            case 'save':
+                $point->details = $details;
+                $point->save();
+                break;
+        }
+
+        SendcloudTools::httpResponseCode(204); // No content
         $this->ajaxDie('');
     }
 }

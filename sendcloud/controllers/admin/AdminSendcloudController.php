@@ -101,16 +101,42 @@ class AdminSendcloudController extends ModuleAdminController
      */
     public function renderView()
     {
-        $carrier = $this->connector->getOrSynchroniseCarrier();
         $can_connect = $this->connector->canConnect();
         if (!$can_connect) {
             $this->errors[] = $this->module->getMessage('cant_connect');
         }
 
-        $edit_carrier_link = '';
-        if ($carrier) {
-            $carriers_link = $this->context->link->getAdminLink('AdminCarrierWizard');
-            $edit_carrier_link = $carriers_link . '&id_carrier=' . $carrier->id;
+        $selectedCarriers = $this->connector->getSelectedCarriers();
+        $carriers = array();
+        foreach ($selectedCarriers as $code => $name) {
+            $carrier = $this->connector->getOrSynchroniseCarrier($code);
+            $editLink = '';
+            if ($carrier && !$carrier->deleted) {
+                $carriersLink = $this->context->link->getAdminLink('AdminCarrierWizard');
+                $editLink = $carriersLink . '&id_carrier=' . $carrier->id;
+            } else {
+                continue;
+            }
+            $thumbnailName = "carrier_mini_{$carrier->id}_{$this->context->shop->id}.jpg";
+            $imagePath = _PS_SHIP_IMG_DIR_.'/'.$carrier->id.'.jpg';
+
+            $thumbnail = ImageManager::thumbnail($imagePath, $thumbnailName, 45);
+            // PS enforces escaping variables in templates, and the automatic validation will fail - even for trivial
+            // and controlled values, like this one produced by a PrestaShop API itself. Get the URL of the
+            // thumbnail and render the image ourselves in the template.
+            $matches = array();
+            preg_match('/^<img.+src="([^"]+)".*>$/i', $thumbnail, $matches);
+            $thumbnailURL = count($matches) >= 2 ? $matches[1] : '';
+            $carriers[] = array(
+                'code' => $code,
+                // NOTE: this is the name used @ Sendcloud (i.e Chronopost, DPD, UPS), not the PrestaShop carrier name
+                // (which the merchant is free to change)
+                'name' => $name,
+                // end NOTE
+                'instance' => $carrier,
+                'edit_link' => $editLink,
+                'thumbnail' => $thumbnailURL
+            );
         }
 
         $goto_panel_url = SendcloudTools::getPanelURL(
@@ -132,9 +158,8 @@ class AdminSendcloudController extends ModuleAdminController
             'is_connected' => $this->connector->isConnected(),
             'connect_settings' => $this->connector->getSettings(),
             'service_point_script' => $this->connector->getServicePointScript(),
-            'service_point_warning' => $this->getWarning(),
-            'service_point_carrier' => $carrier,
-            'service_point_carrier_link' => $edit_carrier_link,
+            'service_point_warning' => $this->getWarning($carriers),
+            'service_point_carriers' => $carriers,
             'connect_url' => $connect_url
         );
 
@@ -176,9 +201,10 @@ class AdminSendcloudController extends ModuleAdminController
      * By default the lack of SendCloud connection and the lack of the service point
      * script are not going to be reported as a warning.
      *
+     * @param array $carriers List of carriers to check against status and determine the warnings
      * @return string The translated warning message.
      */
-    private function getWarning()
+    private function getWarning(array $carriers)
     {
         $shop_id = Shop::getContextShopID(false);
         if ($shop_id === null) {
@@ -195,38 +221,43 @@ class AdminSendcloudController extends ModuleAdminController
             return $this->module->getMessage('warning_no_configuration');
         }
 
-        $carrier = $this->connector->getOrSynchroniseCarrier();
-
-        if (!$carrier) {
-            // Line too long but PS translation tool doesn't recognise it when splitted
-            // on multiple lines.
+        /*
+        Warn about the carriers if:
+            - No selected carrier configuration is found
+            - No (PS) carriers were created (i.e.: no )
+            - Any (PS) carrier is deactivated or deleted
+            - Any (PS) carrier does not have zone (prices) configuration
+            - Any (PS) carrier is not associated with the current shop.
+        */
+        if (empty($carriers)) {
             return $this->module->getMessage('warning_carrier_not_found');
         }
 
-        if (!$carrier->active && !$carrier->deleted) {
-            // Line too long but PS translation tool doesn't recognise it when splitted
-            // on multiple lines.
-            return $this->module->getMessage('warning_carrier_inactive');
-        }
+        // TODO: Get better warnings and pinpoint which carriers are problematic.
+        foreach ($carriers as $item) {
+            $carrier = $item['instance'];
 
-        if ($carrier->deleted) {
-            // Line too long but PS translation tool doesn't recognise it when splitted
-            // on multiple lines.
-            return $this->module->getMessage('warning_carrier_deleted');
-        }
+            if (!$carrier->active && !$carrier->deleted) {
+                return $this->module->getMessage('warning_carrier_inactive');
+            }
 
-        $available_zones = $carrier->getZones();
-        if (empty($available_zones)) {
-            return $this->module->getMessage('warning_carrier_zones');
-        }
+            if ($carrier->deleted) {
+                return $this->module->getMessage('warning_carrier_deleted');
+            }
 
-        $carrier_shops = $carrier->getAssociatedShops();
-        if (!in_array($shop_id, $carrier_shops)) {
-            return $this->module->getMessage('warning_carrier_disabled_for_shop');
-        }
+            $available_zones = $carrier->getZones();
+            if (empty($available_zones)) {
+                return $this->module->getMessage('warning_carrier_zones');
+            }
 
-        if ($this->connector->isRestricted($carrier, $this->context->shop)) {
-            return $this->module->getMessage('warning_carrier_restricted');
+            $carrier_shops = $carrier->getAssociatedShops();
+            if (!in_array($shop_id, $carrier_shops)) {
+                return $this->module->getMessage('warning_carrier_disabled_for_shop');
+            }
+
+            if ($this->connector->isRestricted($carrier, $this->context->shop)) {
+                return $this->module->getMessage('warning_carrier_restricted');
+            }
         }
     }
 

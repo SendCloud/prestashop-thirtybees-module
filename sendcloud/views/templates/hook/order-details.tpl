@@ -14,7 +14,10 @@
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *}
-<div id="sendcloudshipping_order_details" class="adresses_bloc sendcloudshipping-{$prestashop_flavor|escape:'htmlall':'UTF-8'}">
+<div
+  id="sendcloud__order-details"
+  class="adresses_bloc sendcloud-spp__order-details sendcloud-spp__order-details--{$prestashop_flavor|escape:'htmlall':'UTF-8'}"
+>
     <div class="row">
       <div class="col-xs-12 col-sm-12">
         <ul class="address alternate_item box">

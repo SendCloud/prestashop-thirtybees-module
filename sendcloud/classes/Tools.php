@@ -48,6 +48,22 @@ class SendcloudTools
     }
 
     /**
+     * Normalize the interface for logging. PS 1.5 uses `Logger` while 1.6+ has `PrestaShopLogger`.
+     * All logs are saved with level `info`.
+     *
+     * @param string $message the message to be logged into PrestaShop logs section
+     */
+    public static function log($message)
+    {
+        $flavor = self::getPSFlavor();
+        if ($flavor === 'ps15') {
+            Logger::addLog($message);
+        } else {
+            PrestaShopLogger::addLog($message);
+        }
+    }
+
+    /**
      * Get the URL to the Webservice documentation related to the current PrestaShop
      * version.
      *
@@ -85,7 +101,7 @@ class SendcloudTools
         }
 
         $panel_url = getenv('SENDCLOUD_PANEL_URL');
-        if (strpos($panel_url, 'sendcloud.sc') === false) {
+        if (!$panel_url) {
             $panel_url = 'https://panel.sendcloud.sc';
         }
 
