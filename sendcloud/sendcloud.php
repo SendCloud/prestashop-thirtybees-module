@@ -56,8 +56,8 @@ class Sendcloud extends CarrierModule
         $this->boostrap = true;
         $this->name = 'sendcloud';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.2.0';
-        $this->author = 'SendCloud Global B.V.';
+        $this->version = '1.3.0';
+        $this->author = 'Sendcloud';
         $this->author_uri = 'https://sendcloud.eu';
         $this->need_instance = false;
         $this->ps_versions_compliancy = array('min' => '1.5','max'=> '1.7');
@@ -68,9 +68,9 @@ class Sendcloud extends CarrierModule
         $this->displayName = $this->l('SendCloud | Europe\'s Number 1 Shipping Tool', $this->name);
 
         /**
-         * Using line breaks makes translations to _not_ work properly. We centralize most translatable strings here
-         * to avoid spreading them in the module and to ease code review and limit usage of the coding standards
-         * ignore comment below.
+         * Using line breaks makes translations to _not_ work properly. We centralize most
+         * translatable strings here to avoid spreading them in the module and to ease code review
+         * and limit usage of the coding standards ignore comment below.
          */
         // @codingStandardsIgnoreStart
         $this->messages = array(
@@ -105,7 +105,7 @@ class Sendcloud extends CarrierModule
     public function getMessage($identifier)
     {
         if (!isset($this->messages[$identifier])) {
-            // Explicitly forbid someone to retrieve e non-defiend message
+            // Explicitly forbid someone to retrieve any non-defined message
             throw new PrestaShopException('Message identifier not found.');
         }
         return $this->messages[$identifier];
@@ -133,6 +133,7 @@ class Sendcloud extends CarrierModule
             $this->registerHook('displayOrderConfirmation') &&
             $this->registerHook('displayOrderDetail') &&
             $this->registerHook('displayPDFDeliverySlip') &&
+            $this->registerHook('displayBeforeCarrier') &&
             // Pre 1.7 Hooks
             $this->registerHook('updateCarrier') &&
             $this->registerHook('displayCarrierList') &&
@@ -158,7 +159,9 @@ class Sendcloud extends CarrierModule
     }
 
     /**
-     * Hook after a new entity is added.
+     * Hook after a new entity is added. Whenever a new `Configuration` entity is created we try
+     * to activate service points. If the configuration is not service point-related, then
+     * this hook is a noop.
      *
      * @param  array parameters received by the hook, contain the target ` $object`.
      * @return null
@@ -199,17 +202,14 @@ class Sendcloud extends CarrierModule
     }
 
     /**
-     * Track changes in the installed service point carrier (pre 1.7).
+     * Track changes in the installed service point carrier
      *
      * @param array $params hook parameters containing the new carrier
+     * @deprecated use `actionCarrierUpdate` instead
      */
     public function hookUpdateCarrier(array $params)
     {
-        if (Tools::version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
-            return;
-        }
-
-        $this->connector->updateCarrier($params['new_carrier']);
+        return true;
     }
 
 
@@ -220,26 +220,76 @@ class Sendcloud extends CarrierModule
      */
     public function hookActionCarrierUpdate(array $params)
     {
-        if (Tools::version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
-            return;
+        $carrier = isset($params['carrier']) ? $params['carrier'] : null;
+
+        if (is_null($carrier)) {
+            // Earlier versions of PrestaShop used to expose this as `new_carrier`. Fallback to it
+            // if the official parameter was not found.
+            $carrier = isset($params['new_carrier'])
+                ? $params['new_carrier']
+                : null;
         }
-        $carrier = isset($params['carrier']) ? $params['carrier'] :
-            // Look for the old parameter as well.
-            isset($params['new_carrier']) ? $params['new_carrier'] : null;
-        $this->connector->updateCarrier($carrier);
+        $this->connector->updateCarrier($params['id_carrier'], $carrier);
+        return true;
     }
 
     /**
-     * Display the service point selection button.
+     * Inject some fixed metadata in the template used by all service point-based carriers.
+     */
+    public function hookDisplayBeforeCarrier(array $params)
+    {
+        $cart = isset($params['cart']) ? $params['cart'] : null;
+        if ($cart === null || !$cart->id_address_delivery || !$this->servicePointsAvailable()) {
+            return '';
+        }
+
+        $address = new Address($cart->id_address_delivery);
+        $country = new Country($address->id_country);
+        $context = $this->context;
+
+        $point = SendcloudServicePoint::getFromCart($cart->id);
+
+        $this->smarty->assign(array(
+            'prestashop_flavor' => SendcloudTools::getPSFlavor(),
+            'cart' => $cart,
+            'to_country' => $country->iso_code,
+            'to_postal_code' => $address->postcode,
+            'language' => $context->language->language_code,
+            'service_point_details' => $point->details,
+            'save_endpoint' => $context->link->getModuleLink($this->name, 'ServicePointSelection')
+        ));
+        return $this->display(__FILE__, 'views/templates/hook/display-before-carrier.tpl');
+    }
+
+    /**
+     * Display the service point selection button for PrestaShop 1.5/1.6
      *
      * @param array $params
      */
     public function hookDisplayCarrierList(array $params)
     {
         if (Tools::version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
+            // This hook is deprecated on PrestaShop 1.7 but it's the only way to render extra
+            // contents for carriers registered in the system.
             return '';
         }
-        return $this->displayServicePointButton($params);
+
+        $cart = isset($params['cart']) ? $params['cart'] : null;
+
+        if (!$cart || !$cart->id_address_delivery || !$this->servicePointsAvailable()) {
+            // Only render service point buttons if they are correctly activated _AND_ there is
+            // enough information
+            return '';
+        }
+
+        $allCarriers = $this->getSyncedCarriers();
+        $listOutput = array();
+
+        foreach($allCarriers as $code => $carrier) {
+            $listOutput[] = $this->renderSelectionButton($carrier, $code);
+        }
+
+        return join('', $listOutput);
     }
 
     /**
@@ -251,6 +301,10 @@ class Sendcloud extends CarrierModule
      */
     public function hookDisplayCarrierExtraContent(array $params)
     {
+        Tools::dieObject($params);
+        if (Tools::version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
+            return '';
+        }
         return $this->displayServicePointButton($params);
     }
 
@@ -258,33 +312,27 @@ class Sendcloud extends CarrierModule
      * Return the markup for the service point selection button.
      *
      * @since 1.1.0
+     * @param Carrier $carrier
      * @param array $params
      * @return string
      */
-    private function displayServicePointButton(array $params)
+    private function displayServicePointButton(array $params, $carrierCode)
     {
         $cart = isset($params['cart']) ? $params['cart'] : null;
-
         if (!$cart || !$cart->id_address_delivery || !$this->servicePointsAvailable()) {
             return '';
         }
 
-        $carrier = $this->connector->getOrSynchroniseCarrier();
-        $address = new Address($cart->id_address_delivery);
-        $country = new Country($address->id_country);
 
-        $point = SendcloudServicePoint::getFromCart($cart->id);
+        return $this->renderSelectionButton($cart, $carrier, $carrierCode);
 
-        $link = $this->context->link;
+    }
+
+    private function renderSelectionButton(Carrier $carrier, $carrierCode) {
         $this->smarty->assign(array(
-            'prestashop_flavor' => SendcloudTools::getPSFlavor(),
             'carrier' => $carrier,
-            'cart' => $cart,
-            'to_country' => $country->iso_code,
-            'to_postal_code' => $address->postcode,
-            'language' => $this->context->language->language_code,
-            'service_point_details' => $point->details,
-            'save_endpoint' => $link->getModuleLink($this->name, 'ServicePointSelection')
+            'carrier_code' => $carrierCode,
+            'prestashop_flavor' => SendcloudTools::getPSFlavor()
         ));
 
         return $this->display(
@@ -306,7 +354,7 @@ class Sendcloud extends CarrierModule
         $controller = isset($this->context->controller) ?
             $this->context->controller : null;
 
-        $allowed_controllers = array(
+        $allowedControllers = array(
             'HistoryController',
             'OrderConfirmationController',
             'OrderController',
@@ -314,7 +362,7 @@ class Sendcloud extends CarrierModule
         );
 
         $is_allowed = !is_null($controller) &&
-            in_array(get_class($controller), $allowed_controllers);
+            in_array(get_class($controller), $allowedControllers);
 
         if (!$is_allowed || !$cart) {
             // Load assets just in the order-related controllers.
@@ -348,30 +396,30 @@ class Sendcloud extends CarrierModule
 
     public function hookDisplayBackOfficeHeader(array $params)
     {
-        $allowed_controllers = array(
+        $allowedControllers = array(
             'AdminOrdersController'
         );
-        $controller = get_class($this->context->controller);
+        $ctrl = $this->context->controller;
+        $controller = get_class($ctrl);
 
-        if (!in_array($controller, $allowed_controllers)) {
+        if (!in_array($controller, $allowedControllers)) {
             return;
         }
 
         $backoffice_css = Tools::toUnderscoreCase($controller);
-        $this->context->controller->addCSS($this->_path. "views/css/backoffice/{$backoffice_css}.css");
+        $ctrl->addCSS($this->_path. "views/css/backoffice/{$backoffice_css}.css");
     }
 
     /**
-     * With a multi-step checkout the process carrier hook is called. It saves
-     * the service point details in the database (or skip it if service points
-     * were not enabled at all).
+     * With a multi-step checkout the process carrier hook is called. It saves the service point
+     * details in the database (or skip it if service points were not enabled, or the user selected
+     * an unrelated carrier).
      *
-     * With OPC style checkout, the only option is to save through
+     * With One Page Checkout, the only option is to save through an async request, handled by
      * `SendcloudShippingServicePointSelectionModuleFrontController`
      *
-     * We keep this as a fall back to the service point selection controller
-     * for multi-step checkouts as a last resource to save the service point
-     * information.
+     * We keep this as a fall back to the service point selection controller for multi-step
+     * checkouts as a last resource to save the service point information.
      *
      * @param  array $params
      * @return bool `true` if service point info was saved/skipped correctly.
@@ -379,23 +427,23 @@ class Sendcloud extends CarrierModule
      */
     public function hookActionCarrierProcess(array $params)
     {
+        return true; // FIXME
         $cart = isset($params['cart']) ? $params['cart'] : null;
         if (!$cart || !$this->servicePointsAvailable()) {
             return false;
         }
 
-        $carrier = $this->connector->getOrSynchroniseCarrier();
+        $carrierIDs = $this->getSyncedCarriers(true);
 
-        if ($cart->id_carrier != $carrier->id) {
-            // A user may not enable service points at all and have selected another carrier.
+        if (!in_array($cart->id_carrier, $carrierIDs)) {
+            // A user may have selected an unrelated carrier. Carry on.
             return true;
         }
 
         $details = Tools::getValue('sendcloudshipping_service_point');
         if ($details && !$this->saveServicePoint($cart, urldecode($details))) {
-            // Line too long but PS translation tool doesn't recognise it when splitted
-            // on multiple lines.
-            $this->context->controller->errors[] = $this->l('Unable to save service point information.', $this->name);
+            $ctrl = $this->context->controller;
+            $ctrl->errors[] = $this->l('Unable to save service point information.', $this->name);
         }
         return true;
     }
@@ -403,9 +451,9 @@ class Sendcloud extends CarrierModule
     /**
      * Check all the requirements to make service points available in the Frontoffice.
      *
-     * - Shop *must* have a connection with SendCloud
+     * - The current shop __MUST__ have a connection with Sendcloud
      * - There's a Service Point script configuration
-     * - Service Point carrier exists and it's correclty configured
+     * - There is at least one Service Point carrier correctly configured for the current shop
      * - The Shop has a relation with the carrier (when using Multistore the admin may
      *   disable the carrier for certain shops.)
      *
@@ -417,21 +465,41 @@ class Sendcloud extends CarrierModule
             return false;
         }
 
-
         $config = $this->connector->getServicePointScript();
-
         if (!$config) {
             return false;
         }
 
-        $carrier = $this->connector->getOrSynchroniseCarrier();
+        $syncedCarriers = $this->getSyncedCarriers();
+        $shop = Context::getContext()->shop;
+
+        $hasAnyValidCarrier = false;
+        foreach($syncedCarriers as $carrier) {
+            $hasAnyValidCarrier = $this->isServicePointsEnabledForCarrier($carrier);
+            if  ($hasAnyValidCarrier) {
+                break;
+            }
+        }
+
+        return $hasAnyValidCarrier;
+    }
+
+    /**
+     * Check if a given carrier matches all the criteria to allow a consumer to select service
+     * points.
+     *
+     * @param Carrier $carrier
+     * @return boolean
+     */
+    private function isServicePointsEnabledForCarrier(Carrier $carrier)
+    {
         if (!$carrier || !$carrier->active || $carrier->deleted) {
             return false;
         }
-        $carrier_shops = $carrier->getAssociatedShops();
-        $shop = Context::getContext()->shop;
 
-        if (!in_array($shop->id, $carrier_shops)) {
+        $shop = Context::getContext()->shop;
+        $carrierShops = $carrier->getAssociatedShops();
+        if (!in_array($shop->id, $carrierShops)) {
             return false;
         }
 
@@ -443,8 +511,40 @@ class Sendcloud extends CarrierModule
         if ($this->connector->isRestricted($carrier, $shop)) {
             return false;
         }
-
         return true;
+    }
+
+    /**
+     * Get a list of a `Carrier` objects based on its latest synced ID
+     *
+     * @param string $code
+     * @return array<Carrier>
+     */
+    private function getSyncedCarriers($idsOnly = false)
+    {
+        $shop = Context::getContext()->shop;
+        $codes = array_keys($this->connector->getSelectedCarriers());
+        $configNames = array();
+        foreach ($codes as $code) {
+            $configNames[$code] = SendcloudConnector::getCarrierConfigName($code);
+        }
+        $values = Configuration::getMultiple($configNames, null, null, $shop->id);
+        $carrierIDs = is_array($values) ? $values : array();
+
+        $configToCodes = array_flip($configNames);
+
+        $carriers = array();
+        foreach($carrierIDs as $key => $id) {
+            if (is_null($id)) {
+                // Configure::getMultiple() may return `null` values for unrecognised keys
+                continue;
+            }
+            // Map carriers to internal Sendcloud codes
+            $code = $configToCodes[$key];
+            $carriers[$code] = $idsOnly === true ? $id : new Carrier($id);
+        }
+
+        return $carriers;
     }
 
     /**
@@ -509,15 +609,13 @@ class Sendcloud extends CarrierModule
     {
         $order = isset($params['objOrder']) ? $params['objOrder'] : null;
         // 1.7+ uses `order` parameter.
-        $order = isset($params['order']) ? $params['order'] : null;
-
+        $order = isset($params['order']) ? $params['order'] : $order;
         if (!$order || !$this->servicePointsAvailable()) {
             return '';
         }
-
-        $carrier = $this->connector->getOrSynchroniseCarrier();
+        $carrierIDs = $this->getSyncedCarriers(true);
         $cart = new Cart($order->id_cart);
-        if (!$cart || $cart->id_carrier != $carrier->id) {
+        if (!$cart || !in_array($cart->id_carrier, $carrierIDs)) {
             return '';
         }
 
@@ -760,7 +858,7 @@ class Sendcloud extends CarrierModule
         $tab->name = array();
 
         foreach (Language::getLanguages(true) as $lang) {
-            $tab->name[$lang['id_lang']] = 'SendCloud';
+            $tab->name[$lang['id_lang']] = 'Sendcloud';
         }
 
         $parent = Tools::version_compare(_PS_VERSION_, '1.7.0.0', '>=') ?
@@ -804,6 +902,12 @@ class Sendcloud extends CarrierModule
      */
     private function uninstallSQL()
     {
+        $removeConfig = sprintf(
+            "DELETE FROM `%s` WHERE name LIKE '%s'",
+            pSQL(_DB_PREFIX_ . 'configuration'),
+            pSQL('SENDCLOUD_SPP%')
+        );
+        Db::getInstance()->execute($removeConfig);
         $queries = include dirname(__FILE__) . '/sql/uninstall.php';
         return $this->performInstallQueries($queries);
     }

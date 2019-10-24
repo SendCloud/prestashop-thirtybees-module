@@ -14,8 +14,8 @@
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *}
-<div id="sendcloudshipping_order_confirmation"
-  class="box  order-confirmation sendcloudshipping-{$prestashop_flavor|escape:'htmlall':'UTF-8'}"
+<div id="sendcloud__order-confirmation"
+  class="box order-confirmation sendcloud-spp__order-confirmation sendcloud-spp__order-confirmation--{$prestashop_flavor|escape:'htmlall':'UTF-8'}"
   data-order-id="{$order->id|escape:'htmlall':'UTF-8'}"
   data-cart-id="{$order->id_cart|escape:'htmlall':'UTF-8'}"
   data-customer-firstname="{$delivery_address->firstname|escape:'htmlall':'UTF-8'}"
@@ -25,7 +25,7 @@
   data-point-id="{$point_details->id|escape:'htmlall':'UTF-8'}"
   >
     <h3 class="page-subheading">{$txt_service_point_details|escape:'htmlall':'UTF-8'}</h3>
-    <div class="point-details">
+    <div class="sendcloud-spp__point-details">
       <dl>
           <dt>{$point_details->name|escape:'htmlall':'UTF-8'}</dt>
           <dd>
