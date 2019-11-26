@@ -2,10 +2,10 @@
 
 global $_MODULE;
 $_MODULE = array();
-$_MODULE['<{sendcloud}prestashop>carrier-selection_4ee99adf9c49607e276cda9fb9ac09d8'] = 'Impossible de sauvegarder les informations du Point Service. Veuillez essayer de nouveau.';
-$_MODULE['<{sendcloud}prestashop>carrier-selection_788863f2fa262c4caa1a24a69311fa79'] = 'Vous devez sélectionner un Point Service Point avant de passer à l\'étape suivante.';
-$_MODULE['<{sendcloud}prestashop>carrier-selection_7923077461ea12988127d7c2c3796635'] = 'Votre navigateur est obsolète. Veuillez mettre à jour votre navigateur pour sélectionner un Point Service.';
 $_MODULE['<{sendcloud}prestashop>carrier-selection_e71b64ac3ac0a50c31bc603f932e706b'] = 'Sélectionner un Point Service';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_4ee99adf9c49607e276cda9fb9ac09d8'] = 'Impossible de sauvegarder les informations du Point Service. Veuillez essayer de nouveau.';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_788863f2fa262c4caa1a24a69311fa79'] = 'Vous devez sélectionner un Point Service Point avant de passer à l\'étape suivante.';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_7923077461ea12988127d7c2c3796635'] = 'Votre navigateur est obsolète. Veuillez mettre à jour votre navigateur pour sélectionner un Point Service.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_0a0efae5b3acb92abc05bfd08e1bf659'] = 'Votre connexion est pratiquement terminée. Redirection vers l\'interface SendCloud en cours..';
 $_MODULE['<{sendcloud}prestashop>sendcloud_1d3c321ce3f92b28a0b83bf50229f01f'] = 'Impossible de désactiver complètement les Points Services.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_2648ffc4502d56d324b924dabee33e71'] = 'Après désinstallation vous ne pourrez plus consulter vos commandes dans l\'interface SendCloud. Êtes-vous sûr de vouloir désinstaller ?';
@@ -30,17 +30,21 @@ $_MODULE['<{sendcloud}prestashop>sendcloud_e55f5072f2140885aa1310871bac9682'] = 
 $_MODULE['<{sendcloud}prestashop>sendcloud_ef2ca428d6153cdcd49601736c5fd970'] = 'Les Points Services sont disponibles mais ne sont pas correctement configurés. Activez les Points Services depuis l\'interface SendCloud pour pouvoir les utiliser.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_f6784ab79fb72e603fd269824d72c9f8'] = 'SendCloud booste vos expéditions en optimisant vos processus d\'envoi de colis. Pour encore plus de simplicité !';
 $_MODULE['<{sendcloud}prestashop>view_43b7f85da18059c7872a568c31ae9be3'] = 'Livraison en Point Service';
+$_MODULE['<{sendcloud}prestashop>view_49ee3087348e8d44e1feda1917443987'] = 'Nom';
 $_MODULE['<{sendcloud}prestashop>view_4a721bdbd122abe48c58a368ea41f8e0'] = 'Les Points Service sont des endroits où les clients peuvent retirer leur colis plus tard (Par exemple un supermarché près du domicile ou du lieu de travail).';
 $_MODULE['<{sendcloud}prestashop>view_50faf77287957aa90fa0fb05e9b81adf'] = 'Les réglages SendCloud correspondent à une boutique en ligne, par conséquent vous devez sélectionner une boutique en ligne avant de pouvoir continuer.';
 $_MODULE['<{sendcloud}prestashop>view_662a805daf14630bbda48fa4978da4f9'] = 'Zones de dépôt';
 $_MODULE['<{sendcloud}prestashop>view_73cd84dcf92541a89a79dc85a310a98f'] = 'Ressources API obligatoires';
 $_MODULE['<{sendcloud}prestashop>view_79e3f8bc41adc04b300090328091db7b'] = 'Sélectionner une boutique en ligne.';
+$_MODULE['<{sendcloud}prestashop>view_7dce122004969d56ae2e0245cb754d35'] = 'Modifier';
+$_MODULE['<{sendcloud}prestashop>view_8c2857a9ad1d8f31659e35e904e20fa6'] = 'Logo';
 $_MODULE['<{sendcloud}prestashop>view_8d760743d6b4934b8b9ede1d18f32872'] = 'En activant les Points Service, vos clients pourront choisir lors du checkout le Point de Service qu\'ils souhaitent.';
 $_MODULE['<{sendcloud}prestashop>view_a80d5e18649d829bda78450f7c862711'] = 'Webservice';
 $_MODULE['<{sendcloud}prestashop>view_abd745bf53e40da52bc5a37b618ba5da'] = 'Connectez-vous à l\'interface SendCloud';
 $_MODULE['<{sendcloud}prestashop>view_ac3b058204a0738f2bce92e42020940f'] = 'Envoyer des colis n\'a jamais été aussi facile!';
 $_MODULE['<{sendcloud}prestashop>view_ad119d5ea30f6c26b58e0af5bc43c9fe'] = 'Contact support';
 $_MODULE['<{sendcloud}prestashop>view_b5734581b5c90ffe9dfca2ec77810c0f'] = 'Gagner du temps et envoyer mnoins cher avec UPS, DHL, DPD et plus';
+$_MODULE['<{sendcloud}prestashop>view_bccc5585aaffb2474777bdb801fd1817'] = 'Zone(s) d\'expédition';
 $_MODULE['<{sendcloud}prestashop>view_c48acf061e21040b25215094b3f3659e'] = 'SendCloud est la solution d\'envoi de colis dédiée aux boutiques en ligne. Avec SendCloud vous pouvez envoyer facilement vos colis avec un large panel de transporteurs comme DHL, DPD, UPS et plus. Vous pouvez importer facilement vos commandes, imprimer vos étiquettes d\'expédition en un seul clic et envoyer automatiquememt des mails Track&Trace personnalisés à vos clients. En plus, vous avez à disposition un portail pour la gestion des retours de marchandises.';
 $_MODULE['<{sendcloud}prestashop>view_d0fffe2fc180ed31a9df4f78503cf2a2'] = 'En vous connectant à SendCloud le %s Prestashop sera activé et la clé API obligatoire créé.';
 $_MODULE['<{sendcloud}prestashop>view_d876ff8da67c3731ae25d8335a4168b4'] = 'Clé API';

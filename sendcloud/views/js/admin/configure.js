@@ -32,7 +32,7 @@
             'rel': 'noopener noreferrer'
         });
         connectForm.on('submit', function () {
-            generate_code(32);
+            generateCode(32);
 
             // Avoid double submission + reload screen.
             connectForm.find('button[type=submit]').prop('disabled', true);
@@ -42,7 +42,7 @@
         });
     }
 
-    function generate_code(size) {
+    function generateCode(size) {
         if ($.isFunction(gencode)) {
             // Use the built-in function to create a new API Key whenever possible
             gencode(size);

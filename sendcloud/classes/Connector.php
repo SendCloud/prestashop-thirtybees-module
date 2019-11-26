@@ -4,30 +4,37 @@
  *
  * PHP version 5
  *
- *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
- *  @copyright 2016 SendCloud Global B.V.
+ *  @author    Sendcloud Global B.V. <contact@sendcloud.com>
+ *  @copyright 2016 Sendcloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *  @package
+ *  @link      https://sendcloud.com
  */
 
 /**
- * Manage connection details and state between the SendCloud panel and the
+ * Manage connection details and state between the panel and the
  * PrestaShop instance.
  *
- *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
- *  @copyright 2016 SendCloud Global B.V.
+ *  @author    Sendcloud Global B.V. <contact@sendcloud.com>
+ *  @copyright 2016 Sendcloud Sendcloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  @category  Shipping
  *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *  @link      https://sendcloud.com
  */
 class SendcloudConnector
 {
     const SETTINGS_CONNECT = 'SENDCLOUD_SETTINGS_CONNECT';
-    const SETTINGS_CARRIER_ID = 'SENDCLOUD_SPP_CARRIER';
+    const SETTINGS_CARRIER_PREFIX = 'SENDCLOUD_SPP_CARRIER_';
     const SETTINGS_SERVICE_POINT = 'SENDCLOUD_SPP_SCRIPT';
+    const LEGACY_CARRIER_CONFIGURATION = 'SENDCLOUD_SPP_CARRIER';
+
+    /**
+     * Keep track of all carriers selected at Sendcloud when activating service points.
+     * @since 1.3.0
+     */
+    const SETTINGS_SELECTED_CARRIERS = 'SENDCLOUD_SPP_SELECTED_CARRIERS';
 
     /**
      * Default price range for Service Point Delivery carrier.
@@ -61,8 +68,9 @@ class SendcloudConnector
             'be' => 'Afhaalpuntevering',
             'de' => 'Paketshop Zustellung',
             'en' => 'Service Point Delivery',
+            'es' => 'Recogida en punto de servicio',
             'fr' => 'Livraison en point service',
-            'nl' => 'Afhaalpuntevering',
+            'nl' => 'Afhaalpuntevering'
         ),
         'shipping_external' => true,
         'external_module_name' => null,
@@ -75,7 +83,7 @@ class SendcloudConnector
     );
 
     /**
-     * Default API permissions used by SendCloud. It __MUST__ use the following
+     * Default API permissions used by Sendcloud. It __MUST__ use the following
      * format:
      *
      * Example: ```
@@ -102,7 +110,7 @@ class SendcloudConnector
     );
 
     /**
-     * SendCloud connection settings.
+     * Sendcloud connection settings.
      *
      * @var array connection data such as API key details.
      */
@@ -152,7 +160,7 @@ class SendcloudConnector
     }
 
     /**
-     * Remove all SendCloud related settings for the current shop.
+     * Remove all Sendcloud related settings for the current shop.
      *
      * @return bool true if all settings were removed succesfully.
      */
@@ -164,22 +172,29 @@ class SendcloudConnector
             $key = new WebserviceKey($settings['id']);
             $delete_key = $key->delete();
         }
-        return Configuration::deleteByName(self::SETTINGS_CONNECT) && $delete_key &&
-            $this->removeCarrier(Context::getContext()->shop) &&
-            Configuration::deleteByName(self::SETTINGS_CARRIER_ID) &&
+
+        $removeConfig = Configuration::deleteByName(self::SETTINGS_CONNECT) &&
+            $delete_key &&
             Configuration::deleteByName(self::SETTINGS_SERVICE_POINT);
+
+        if ($removeConfig !== true) {
+            return false;
+        }
+
+        $this->removeAllCarriers();
+        return true;
     }
 
     /**
      * Activate the WebService feature of PrestaShop, creates or updates the required
-     * API credentials related to the SendCloud connection _for the current shop_
-     * and redirect to SendCloud panel to connect with the newly created settings.
+     * API credentials related to the Sendcloud connection _for the current shop_
+     * and redirect to Sendcloud panel to connect with the newly created settings.
      *
      * If an existing API account is already created, it will be updated with a new
-     * API key and the connection in the SendCloud Panel updated accordingly.
+     * API key and the connection in the Sendcloud Panel updated accordingly.
      *
      * @return array New or updated connection data, including latest key/id.
-     * @throws MissingSendCloudAPIException
+     * @throws MissingSendcloudAPIException
      */
     public function connect($new_title, $new_key)
     {
@@ -225,7 +240,7 @@ class SendcloudConnector
 
     /**
      * Check requirements that the current shop needs to have before connecting
-     * with SendCloud.
+     * with Sendcloud.
      *
      * @return bool
      */
@@ -246,12 +261,12 @@ class SendcloudConnector
     public function isConnected()
     {
         $settings = $this->getSettings();
-        $current_shop_id = (int)Shop::getContextShopID(false);
+        $current_shopID = (int)Shop::getContextShopID(false);
 
         $connection_made =
             !is_null($settings['id']) &&
             !is_null($settings['key']) &&
-            in_array($current_shop_id, $settings['shops']) &&
+            in_array($current_shopID, $settings['shops']) &&
             Configuration::get('PS_WEBSERVICE');
 
         return $connection_made;
@@ -264,45 +279,47 @@ class SendcloudConnector
      * @param bool $lookup Query the carrier table to get the current active carrier.
      * @return Carrier or `null` if no carrier could be found.
      */
-    public function getCarrier($lookup = true)
+    public function getCarrier($code)
     {
-        $carrier_id = Configuration::get(self::SETTINGS_CARRIER_ID, null, null, null);
+        $carrierID = self::getSyncedCarrierID($code);
 
-        if ($lookup) {
-            /*
-            Sometimes PrestaShop 1.5 behaves badly when updating a carrier:
+        /*
+        Sometimes PrestaShop (1.5, mostly) behaves badly when updating a carrier:
 
-            If an invalid value is passed to the `Tracking URL` field for example,
-            and a user hits the `Finish` button instead of `Next`, a new carrier
-            is created but the validation complains about it and a 'rollback' is
-            executed; the newly created carrier is marked as `deleted` and the
-            original carrier is set as `active`. The validation error prevents
-            the `updateCarrier` hook to be executed properly, making the current
-            active carrier to be out of sync with our most recent saved carrier ID
+        If an invalid value is passed to the `Tracking URL` field for example,
+        and a user hits the `Finish` button instead of `Next`, a new carrier
+        is created but the validation complains about it and a 'rollback' is
+        executed, crating yet another carrier; the faulty carrier  is marked as `deleted` and the
+        carrier created by the rollback is set as `active`.
 
-            We synchronise the carrier ID here in order to avoid any mismatch
-            and prevent the module to stop working.
-            */
-            $carrier_sql = "SELECT id_carrier FROM `%s`
-                WHERE external_module_name='%s'
-                AND active=1 and deleted=0 and is_module=1";
+        The validation error prevents the `updateCarrier` hook to be executed properly, making the
+        current active carrier to be out of sync with our most recent saved carrier ID
 
-            $carrier_found = Db::getInstance()->getValue(sprintf(
-                $carrier_sql,
-                pSQL(_DB_PREFIX_.'carrier'),
-                pSQL($this->moduleName)
-            ));
+        We synchronise the carrier ID here in order to avoid any mismatch
+        and prevent the module to stop working.
+        */
+        $referenceID = Configuration::getGlobalValue(self::getCarrierConfigName($code, true));
 
-            if ($carrier_found && $carrier_found != $carrier_id) {
-                throw new SendcloudUnsynchronisedCarrierException($carrier_found, $carrier_id);
-            }
+        $carrierSQL = "SELECT id_carrier FROM `%s`
+            WHERE external_module_name='%s'
+            AND active=1 and deleted=0 and is_module=1 AND id_reference=%s";
+
+        $carrierFound = Db::getInstance()->getValue(sprintf(
+            $carrierSQL,
+            pSQL(_DB_PREFIX_.'carrier'),
+            pSQL($this->moduleName),
+            (int)$referenceID
+        ));
+
+        if ($carrierFound && $carrierFound != $carrierID) {
+            throw new SendcloudUnsynchronisedCarrierException($carrierFound, $carrierID);
         }
 
-        if (!$carrier_id) {
+        if (!$carrierID || !$carrierFound) {
             return;
         }
 
-        return new Carrier($carrier_id);
+        return new Carrier($carrierID);
     }
 
     /**
@@ -310,14 +327,15 @@ class SendcloudConnector
      *
      * @return Carrier
      */
-    public function getOrSynchroniseCarrier()
+    public function getOrSynchroniseCarrier($code)
     {
         try {
-            $carrier = $this->getCarrier();
+            $carrier = $this->getCarrier($code);
         } catch (SendcloudUnsynchronisedCarrierException $e) {
             $this->synchroniseCarrier($e->carrierFound);
-            $carrier = $this->saveCarrier($e->carrierFound);
+            $carrier = $this->saveCarrier($code, $e->carrierFound);
         }
+
         return $carrier;
     }
 
@@ -332,7 +350,7 @@ class SendcloudConnector
     }
 
     /**
-     * Get the permissions required by the SendCloud module based in the list
+     * Get the permissions required by the Sendcloud module based in the list
      * of required resources.
      *
      * @return array
@@ -355,24 +373,55 @@ class SendcloudConnector
     }
 
     /**
-     * Keep track of the current carrier ID. PrestaShop does not change the
-     * same record, instead a new entry in the carrier table is created.
+     * Keep track of the current carrier ID. PrestaShop does soft updates and just the most recent
+     * version of the carrier is visible to end consumers/merchants.
      *
      * @see SendcloudConnector::addCarrierLogo()
      * @see SendcloudConnector::getCarrier()
      * @see SendcloudConnector::saveCarrier()
+     *
+     * @param int $current_id the previous carrier version ID
      * @param Carrier $new_carrier
      */
-    public function updateCarrier($new_carrier)
+    public function updateCarrier($current_id, $new_carrier)
     {
         if ($new_carrier->external_module_name === $this->moduleName) {
-            $this->saveCarrier($new_carrier->id);
+            $shop = Context::getContext()->shop;
+            $selectedCarriers = array_keys($this->getSelectedCarriers($shop));
+            $matchingCode = null;
+
+            // There is no way to attach metadata to the `Carrier` itself, so we have to iterate
+            // over all known selected carriers to find a matching carrier code.
+            foreach ($selectedCarriers as $code) {
+                $syncedID = self::getSyncedCarrierID($code, false);
+                $syncedReference = self::getSyncedCarrierID($code, true);
+
+                if ((int)$syncedID === (int)$current_id ||
+                    (int)$syncedReference === (int)$new_carrier->id_reference
+                ) {
+                    $matchingCode = $code;
+                    break;
+                }
+            }
+            if (is_null($matchingCode)) {
+                throw new PrestashopException('Unable to update service point carrier reference.');
+            }
+
+            $this->saveCarrier($matchingCode, $new_carrier->id);
         }
     }
 
     /**
      * Inspect the object and if it's the service point configuration we create the
-     * required carrier and update the module settings accordingly.
+     * required carriers and update the module settings accordingly. Activating service points happens
+     * in two phases:
+     *
+     * 1. A request is made to tell which carriers the user selected at Sendcloud
+     * 2. A request is made t activate service points and inject the service point script
+     *
+     * After that, further requests _may_ be executed to _update selected carriers_. If a carriers
+     * was removed from Sendcloud service point configuration, the corresponding carrier on PrestaShop
+     * is removed as well.
      *
      * @param ObjectModel $object
      * @throws SendcloudServicePointException
@@ -380,32 +429,174 @@ class SendcloudConnector
      */
     public function activateServicePoints(Shop $shop, $object)
     {
-        if (!$this->isServicePointsConfig($object)) {
+        if (!$this->isServicePointConfiguration($object)) {
             return;
         }
 
-        // Avoid polluting the database with multiple (perhaps incorrect)
-        // data related to service points.
-        // If an attempt to enable the feature successfuly creates the configuration
-        // but SendCloud refuses to save it we may start to create several service
-        // point configurations. PrestaShop design allows us to have multiple
-        // configurations with the same name, shop, and shop group, hence the deletion
-        // of previously added scripts.
-        $configuration = pSQL(_DB_PREFIX_.'configuration');
-        $config_name = pSQL(self::SETTINGS_SERVICE_POINT);
-        $config_id = (int)$object->id;
-        $shop_id = (int)$shop->id;
-
-        $remove_orphans = "DELETE FROM `{$configuration}`
-        WHERE name='{$config_name}' AND id_configuration != ${config_id}
-        AND id_shop='{$shop_id}'";
-
-        if (!Db::getInstance()->execute($remove_orphans)) {
-            throw new SendcloudServicePointException(
-                'Unable to remove orphan configurations.'
-            );
+        if (self::SETTINGS_SELECTED_CARRIERS === $object->name) {
+            // Normalize value: It must be a valid JSON
+            try {
+                $newCarriers = Tools::jsonDecode($object->value, true);
+                if (empty($newCarriers)) {
+                    throw new UnexpectedValueException('At least one carrier must be selected');
+                }
+            } catch (UnexpectedValueException $e) {
+                $object->delete();
+                throw new SendcloudServicePointException('Invalid carrier configuration: '. $e->getMessage());
+            }
+            $this->removeOrphanConfiguration($shop, self::SETTINGS_SELECTED_CARRIERS, $object->id);
+            $this->updateCarrierSelection($shop);
         }
-        return $this->createCarrier($shop);
+
+        if (self::SETTINGS_SERVICE_POINT === $object->name) {
+            $this->removeOrphanConfiguration($shop, self::SETTINGS_SERVICE_POINT, $object->id);
+            $this->updateCarrierSelection($shop);
+        }
+        return true;
+    }
+
+    /**
+     * Return the configuration of all selected carriers in the context of the current shop.
+     *
+     * @param Shop $shop The shop which we want to retrieve selected carriers for. Defaults to the
+     *                   Shop in the current context.
+     * @return array
+     */
+    public function getSelectedCarriers(Shop $shop = null)
+    {
+        $shop = $shop === null ? Context::getContext()->shop : $shop;
+        $configuration = $this->getShopConfiguration($shop, self::SETTINGS_SELECTED_CARRIERS);
+        $carriers = Tools::jsonDecode($configuration, true);
+        return is_array($carriers) ? $carriers : array();
+    }
+
+    /**
+     * Update carrier selection and configure carriers accordingly; existing carriers are kept as is,
+     * new carriers are created and the rest is deleted.
+     *
+     * @return void
+     */
+    public function updateCarrierSelection(Shop $shop)
+    {
+        $script = $this->getServicePointScript($shop);
+        if (is_null($script)) {
+            // This method is only valid once service points were correctly configured.
+            return;
+        }
+
+        $selectedCarriers = $this->getSelectedCarriers($shop);
+        $selectedCodes = array_keys($selectedCarriers);
+        $registeredCarrierCodes = $this->getAllRegisteredCarrierCodes();
+
+        // Note: it might have difference between *selected* carriers and *registered* carriers.
+        // Check what have changed so we can add/remove carriers based on that difference.
+        $allKeys = array_unique(array_merge($selectedCodes, $registeredCarrierCodes));
+        $preserve = array_unique(array_intersect($selectedCodes, $registeredCarrierCodes));
+
+        foreach ($allKeys as $code) {
+            if (in_array($code, $preserve)) {
+                continue;
+            }
+            if (!in_array($code, $selectedCodes)) {
+                // We have to remove unused carriers as the consumer cannot use the service point+
+                // selection with it.
+                $this->removeCarrier($shop, $code);
+            } else {
+                $name = $selectedCarriers[$code];
+                $this->createCarrier($shop, $code, $name);
+            }
+        }
+
+        // Finally, clear the legacy carrier configuration
+        $this->removeLegacyCarrier();
+    }
+
+    /**
+     * Remove the legacy carrier which was carrier-agnostic as we now support carrier-specific service point carriers.
+     */
+    private function removeLegacyCarrier()
+    {
+        $lastKnowLegacyID = Configuration::getGlobalValue(self::LEGACY_CARRIER_CONFIGURATION);
+        if (!$lastKnowLegacyID) {
+            // Nothing to be done...
+            return;
+        }
+        SendcloudTools::log(sprintf('Sendcloud: removing legacy carrier; last know ID=%d', $lastKnowLegacyID));
+        $carrier = new Carrier((int)$lastKnowLegacyID);
+        if ($carrier->deleted || !$carrier->active) {
+            SendcloudTools::log(sprintf(
+                'Sendcloud: last know carrier is deleted or disabled; ID=%d',
+                $lastKnowLegacyID
+            ));
+            // Sometimes the last known ID of a carrier gets desynchronised and the last know ID refers to a previous
+            // version (deleted) Sendcloud carrier. Use the reference_id to get the current active one and delete it.
+            $activeSQL = sprintf(
+                "SELECT `id_carrier` FROM `%s`
+                 WHERE external_module_name='%s' AND
+                 id_reference=%d AND deleted=0 AND active=1",
+                pSQL(_DB_PREFIX_ . 'carrier'),
+                pSQL($this->moduleName),
+                (int)$carrier->id_reference
+            );
+            $activeLegacyID = Db::getInstance()->getValue($activeSQL);
+
+            SendcloudTools::log(sprintf('Sendcloud: active legacy carrier found.; ID=%d', $activeLegacyID));
+
+            $carrier = new Carrier((int)$activeLegacyID);
+            $carrier->delete();
+        } else {
+            $carrier->delete();
+        }
+        Configuration::deleteByName(self::LEGACY_CARRIER_CONFIGURATION);
+    }
+
+    /**
+     * Each PS carrier has an entry in the configuration table holding its latest synced ID. This will
+     * return all (Sendcloud) carrier codes based in the configuration names.
+     *
+     * @return array List if Sendcloud-specific carrier codes (i.e.: colissimo, dpd, chronopost, mondial_relay)
+     */
+    private function getAllRegisteredCarrierCodes()
+    {
+        $allConfigSQL = sprintf(
+            "SELECT name FROM `%s` WHERE name LIKE '%s%%'",
+            pSQL(_DB_PREFIX_ . 'configuration'),
+            pSQL(self::SETTINGS_CARRIER_PREFIX)
+        );
+        $data = Db::getInstance()->query($allConfigSQL)->fetchAll(PDO::FETCH_COLUMN);
+        $codes = array();
+        foreach ($data as $entry) {
+            $sanitized = str_replace(self::SETTINGS_CARRIER_PREFIX, '', $entry);
+            $sanitized = str_replace('_REFERENCE', '', $sanitized);
+            // Sendcloud carrier codes are sent in lowercase, but configurations are saved in all-caps.
+            $code = Tools::strtolower($sanitized);
+            $codes[] = $code;
+        }
+
+        $codes = array_unique($codes);
+        return $codes;
+    }
+
+    /**
+     * Given a `Carrier` instance, return the registered Sendcloud carrier code for it
+     *
+     * @param Carrier $carrier
+     * @return string|null The carrier code or NULL in case the configuration is not found
+     */
+    public function getCarrierCode(Carrier $carrier)
+    {
+        $sql = sprintf(
+            "SELECT name FROM `%s` WHERE name LIKE '%s%%' AND value=%d",
+            pSQL(_DB_PREFIX_ . 'configuration'),
+            pSQL(self::SETTINGS_CARRIER_PREFIX),
+            (int)$carrier->id
+        );
+        $config = Db::getInstance()->getValue($sql);
+        if (!$config) {
+            return null;
+        }
+        $code = str_replace(self::SETTINGS_CARRIER_PREFIX, '', $config);
+        return Tools::strtolower($code);
     }
 
     /**
@@ -414,30 +605,32 @@ class SendcloudConnector
      * @param ObjectModel $object
      * @return bool `true` if the carrier was successfuly removed.
      */
-    public function deactivateServicePoints(Shop $shop, $object)
+    public function deactivateServicePoints($object)
     {
-        if (!$this->isServicePointsConfig($object)) {
+        if (!$this->isServicePointConfiguration($object, array(self::SETTINGS_SERVICE_POINT))) {
             return;
         }
 
-        return $this->removeCarrier($shop);
+        $this->removeAllCarriers();
+        return true;
     }
 
     /**
      * Save the given carrier ID to the module global settings.
      *
+     * @param string $code Sendcloud internal identifier of a carrier (i.e: colissimo, chronopost, etc)
      * @param int $carrier_id
      */
-    public function saveCarrier($carrier_id)
+    public function saveCarrier($code, $carrier_id)
     {
-        Configuration::updateValue(
-            self::SETTINGS_CARRIER_ID,
-            (int)$carrier_id,
-            false, // $html
-            0, // $id_shop_group,
-            0 // $id_shop
+        Configuration::updateGlobalValue(self::getCarrierConfigName($code), (int)$carrier_id);
+        $carrier = new Carrier($carrier_id);
+        Configuration::updateGlobalValue(
+            self::getCarrierConfigName($code, true),
+            // If there is no reference, we should make this carrier point to itself.
+            !empty($carrier->id_reference) ? $carrier->id_reference : (int)$carrier_id
         );
-        return new Carrier($carrier_id);
+        return $carrier;
     }
 
     /**
@@ -459,16 +652,20 @@ class SendcloudConnector
     /**
      * Retrieve the Service Point script configuration for the current active Shop.
      *
-     * @return string Service Point script located @ SendCloud
+     * @param Shop $shop Shop instance related to the service point configuration. Defaults to
+     *                   the shop available in the current context (i.e. API call is always for
+     *                   a specific shop)
+     * @return string|null Service Point script located @ Sendcloud. NULL in case it wasn't set
      */
-    public function getServicePointScript()
+    public function getServicePointScript(Shop $shop = null)
     {
-        $shop = Context::getContext()->shop;
+        // Use the current shop in the context if none is passed explicitly
+        $shop = $shop ===  null ? Context::getContext()->shop : $shop;
         return $this->getShopConfiguration($shop, self::SETTINGS_SERVICE_POINT);
     }
 
     /**
-     * Check for carrier restriction with Payment Methods.
+     * Check for carrier restriction in relation to Payment Methods.
      *
      * @since 1.1.0
      * @param Carrier $carrier The carrier to check for.
@@ -499,47 +696,118 @@ class SendcloudConnector
     }
 
     /**
+     * Configuration name that holds the latest saved carrier ID so that everytime a carrier is
+     * updated, the module knows wich carrier to pick.
+     *
+     * @param string $code Sendcloud-specific carrier code
+     * @param boolean $reference Return the reference configuration
+     */
+    public static function getCarrierConfigName($code, $reference = false)
+    {
+        $code = Tools::strtoupper($code);
+        $name = self::SETTINGS_CARRIER_PREFIX . $code;
+        return $reference === true
+            ? $name . '_REFERENCE'
+            : $name;
+    }
+
+    /**
+     * Retrieve the latest ID saved for a specific (Sendcloud) carrier code (i.e. dpd, ups).
+     * PrestaShop is designed in such a way that it doesn't allow us to save metadata to the
+     * carrier itself and the general guideline (officially documented) is to keep a reference of
+     * the latest active carrier around. We also need it's "reference carrier" to be saved to make
+     * sure carrier synchronisation is done properly.
+     *
+     * @see SendcloudConnector::getOrSynchroniseCarrier()
+     * @param string $code Sendcloud internal carrier code (i.e.: ups, dpd, colissimo...)
+     * @param boolean $reference If TRUE, then it returns the ID of the very first version of a carrier.
+     * @return int The lastest saved Carrier ID, based on $code
+     */
+    private static function getSyncedCarrierID($code, $reference = false)
+    {
+        return Configuration::getGlobalValue(self::getCarrierConfigName($code, $reference));
+    }
+
+    /**
+     * Avoid polluting the database with multiple (perhaps incorrect) data related to service points.
+     * If an attempt to enable the feature successfuly creates the configuration but Sendcloud refuses
+     * to save it we may start to create several service point configurations.
+     *
+     * PrestaShop is designed in such a way that it allows us to have multiple configurations with
+     * the same name, shop, and shop group, hence the deletion of previously added configurations.
+     *
+     * @param string $name
+     * @param int|null $preserve_id configuration ID passed here is not removed.
+     */
+    private function removeOrphanConfiguration(Shop $shop, $name, $preserve_id)
+    {
+        $configuration = pSQL(_DB_PREFIX_.'configuration');
+        $configName = pSQL($name);
+        $shopID = (int)$shop->id;
+        $configID = (int)$preserve_id;
+
+        $removeOrphansSQL = "DELETE FROM `{$configuration}`
+            WHERE name='{$configName}' AND
+            id_shop='{$shopID}' AND
+            id_configuration != ${configID}";
+
+        $deletedRows = Db::getInstance()->execute($removeOrphansSQL);
+        if (!$deletedRows) {
+            throw new SendcloudServicePointException('Unable to remove orphan configurations.');
+        }
+    }
+
+    /**
      * We got some variations between configuration creation/retrieval between PS 1.5
      * and PS 1.6+ using the Webservice feature.
      *
      * While PS 1.5 doesn't allow us to create configuration using the Webservice
      * _without specifying_ a Shop ID, on PS 1.6 this goes fine. Since the service
-     * point configuration *MUST* be shop-specific, we always crete the configuration
+     * point configuration *MUST* be shop-specific, we always create the configuration
      * _with_ a Shop ID defined.
      *
      * Unfortunately, with multishop turned off, an attempt to retrieve a
-     * shop-specific configuration fails, because the `$shop_id` is reset on
+     * shop-specific configuration fails, because the `$shopID` is reset on
      * `ConfigurationCore::get()` and the proper value cannot be retrieved with
      * PrestaShop 1.6+
      *
      * @param Shop $shop Shop to inspect for the desired configuration.
-     * @param string $config_name Configuration name to look for.
+     * @param string $configName Configuration name to look for.
+     * @param boolean $cache Save the value to the class instance to avoid multiple DB hits.
      * @return mixed Configuration value.
      */
-    private function getShopConfiguration(Shop $shop, $config_name)
+    private function getShopConfiguration(Shop $shop, $configName, $cache = true)
     {
         $value = null;
-        $savedConfigurations = isset($this->savedConfigurations[$shop->id]) ?
-            $this->savedConfigurations[$shop->id] : array();
-        $savedValue = isset($savedConfigurations[$config_name]) ?
-            $savedConfigurations[$config_name] : null;
+        $savedConfigurations = isset($this->savedConfigurations[$shop->id])
+            ? $this->savedConfigurations[$shop->id]
+            : array();
+        $savedValue = null;
 
+        if ($cache === true && isset($savedConfigurations[$configName])) {
+            $savedValue = $savedConfigurations[$configName];
+        }
 
         if (!$savedValue) {
             $retrieve_sql = sprintf(
-                "SELECT `value` FROM `%s` WHERE name='%s' and id_shop='%d' ORDER BY `id_configuration` DESC",
+                "SELECT `value` FROM `%s`
+                     WHERE name='%s' AND
+                     id_shop='%d'
+                     ORDER BY `id_configuration` DESC",
                 pSQL(_DB_PREFIX_ . 'configuration'),
-                pSQL($config_name),
+                pSQL($configName),
                 (int)$shop->id
             );
             $value = Db::getInstance()->getValue($retrieve_sql);
             if ($value !== false) {
                 // Set the value temporarily to avoid multiple database lookups
                 // for this configuration.
-                $savedConfigurations[$config_name] = $value;
+                $savedConfigurations[$configName] = $value;
             }
 
-            $this->savedConfigurations[$shop->id] = $savedConfigurations;
+            if ($cache === true) {
+                $this->savedConfigurations[$shop->id] = $savedConfigurations;
+            }
         } else {
             $value = $savedValue;
         }
@@ -547,26 +815,33 @@ class SendcloudConnector
     }
 
     /**
-     * Determine if `$object` is a service point configuration.
+     * Determine if `$object` is an external configuration used to enable service points.
      *
      * @param ObjectModel $object
      * @return bool
      */
-    private function isServicePointsConfig($object)
+    private function isServicePointConfiguration($object, $limit_names = null)
     {
-        return !is_null($object) &&
-            $object instanceof Configuration &&
-            self::SETTINGS_SERVICE_POINT === $object->name;
+        if (is_null($object) || !($object instanceof Configuration)) {
+            return false;
+        }
+        $configNames = !is_array($limit_names)
+            ? array(self::SETTINGS_SERVICE_POINT, self::SETTINGS_SELECTED_CARRIERS)
+            : $limit_names;
+        return in_array($object->name, $configNames);
     }
 
     /**
-     * Get the tracking URL based in the current SendCloud panel URL.
+     * Get the tracking URL based in the current Sendcloud panel URL.
      *
+     * @deprecated This URL pattern does not work anymore and it MUST be phased out.
      * @return string
      */
     private function getTrackingURL()
     {
-        return SendcloudTools::getPanelURL('/shipping/track/@', null, false);
+        return '';
+        // FIXME: Use correct tracking URL here.
+        // return SendcloudTools::getPanelURL('/shipping/track/@', null, false);
     }
 
 
@@ -605,11 +880,11 @@ class SendcloudConnector
      *
      * @return bool `true` if carrier is created/updated
      */
-    private function createCarrier(Shop $shop)
+    private function createCarrier(Shop $shop, $code, $name)
     {
         $config = $this->carrierConfig;
         // Retrieve the latest known carrier ID, otherwise create a new entry
-        $carrier = $this->getOrSynchroniseCarrier();
+        $carrier = $this->getOrSynchroniseCarrier($code);
 
         if (!$carrier || $carrier->deleted || !$carrier->active) {
             $carrier = new Carrier();
@@ -621,8 +896,11 @@ class SendcloudConnector
         foreach ($config as $prop => $value) {
             $carrier->$prop = $value;
         }
-
+        // Initial carrier names would be something like: `Service Point Delivery: Colissimo`
+        $carrier->name = "{$carrier->name}: $name";
         $carrier->external_module_name = $this->moduleName;
+
+        // FIXME: tracking URLs in the current format will soon be phased out
         $carrier->url = $this->getTrackingURL();
 
         $max_weight = $this->defaultWeightRange[1];
@@ -642,8 +920,8 @@ class SendcloudConnector
             return false;
         }
 
-        $this->saveCarrier($carrier->id);
         $this->synchroniseCarrier($carrier->id);
+        $this->saveCarrier($code, $carrier->id);
 
         return true;
     }
@@ -720,7 +998,7 @@ class SendcloudConnector
      * Copy our logo to standard PS carrier logo directory.
      *
      * @param Carrier $carrier
-     * @return bool `true` if copying was successful
+     * @return void
      */
     private function addCarrierLogo($carrier_id)
     {
@@ -782,16 +1060,20 @@ class SendcloudConnector
      * service point configuration is also executed.
      *
      * @param Shop $shop
+     * @param string $code the (Sendcloud) internal carrier code to delete a carrier
+     * @param bool $force ignore multi shop checks and delete it anyway
      * @return bool `true` if the carrier is successfuly removed.
      */
-    private function removeCarrier(Shop $shop)
+    private function removeCarrier(Shop $shop, $code, $force = false)
     {
-        $carrier = $this->getOrSynchroniseCarrier();
+        $carrier = $this->getOrSynchroniseCarrier($code);
 
         if (!$carrier || !$carrier->id) {
-            // The end user may not activate service points at all, leading
-            // to no carrier information to be removed.
-            Configuration::deleteByName(self::SETTINGS_CARRIER_ID);
+            // The end user may not activate service points at all, leading to no carrier
+            // information to be removed. In any case, cleanup any traces of carrier configuration
+            Configuration::deleteByName(self::getCarrierConfigName($code));
+            Configuration::deleteByName(self::getCarrierConfigName($code, true));
+            $this->removeCarrierConfiguration();
             return true;
         }
 
@@ -802,23 +1084,95 @@ class SendcloudConnector
             return false;
         }
 
-        $remaining_service_points = Db::getInstance()->getValue(sprintf(
-            "SELECT COUNT(1) FROM `%s` WHERE name='%s' AND id_shop != %d AND id_shop != 0",
+        if (!$this->isCarrierSelectedByOtherShops($shop, $code) || $force === true) {
+            // Service point script configuration is saved once per shop (in a multishop environment)
+            // We'll remove the carrier only if it's not being used by any other shop configuration _OR_ if explicitly
+            // forced to do so
+            $carrier->delete();
+            Configuration::deleteByName(self::getCarrierConfigName($code));
+            Configuration::deleteByName(self::getCarrierConfigName($code, true));
+        }
+
+        $this->removeCarrierConfiguration();
+        return true;
+    }
+
+    /**
+     * If all Sendcloud carriers were removed, then remove service points configuration as well
+     * otherwise both back and front office may render inconsistent UI states.
+     */
+    private function removeCarrierConfiguration()
+    {
+        $moduleCarriers = Db::getInstance()->getValue(sprintf(
+            "SELECT COUNT(1) FROM `%s` WHERE external_module_name = '%s'",
+            pSQL(_DB_PREFIX_ . 'carrier'),
+            pSQL($this->moduleName)
+        ));
+
+        if ((int)$moduleCarriers == 0) {
+            Configuration::deleteByName(self::SETTINGS_SERVICE_POINT);
+            Configuration::deleteByName(self::SETTINGS_SELECTED_CARRIERS);
+        }
+    }
+
+    /**
+     * Check if a given carrier code is selected on another Shop (Sendcloud integration).
+     *
+     * @param string $code Sendcloud carrier code (i.e.: dpd, ups, colissimo)
+     * @return boolean
+     */
+    private function isCarrierSelectedByOtherShops(Shop $shop, $code)
+    {
+        $carrierInUse = false;
+        $otherSelections = Db::getInstance()->query(sprintf(
+            "SELECT value from `%s` WHERE name='%s' AND id_shop != %d AND id_shop != 0",
             pSQL(_DB_PREFIX_ . 'configuration'),
-            pSQL(self::SETTINGS_SERVICE_POINT),
+            pSQL(self::SETTINGS_SELECTED_CARRIERS),
             (int)$shop->id
         ));
-        // Keep the carrier, since it's being used by other shops.
-        if (!$remaining_service_points) {
-            // only delete if there're no remaining service point settings.
-            $removed = $carrier->delete();
-            if ($removed) {
-                Configuration::deleteByName(self::SETTINGS_CARRIER_ID);
-                Configuration::deleteByName(self::SETTINGS_SERVICE_POINT);
+
+        foreach ($otherSelections as $config) {
+            $selection = Tools::jsonDecode($config, true);
+            $selectedCodes = is_array($selection) ? $selection : array();
+            $carrierInUse = in_array($code, array_keys($selectedCodes));
+            if ($carrierInUse === true) {
+                // If it's used by other shops, then there's no need to keep checking
+                break;
             }
-            return $removed;
         }
-        return true;
+        return $carrierInUse;
+    }
+
+    /**
+     * Remove all module carriers and its their related configuration.
+     *
+     * @return void
+     */
+    private function removeAllCarriers()
+    {
+        $activeCarriersSQL = sprintf(
+            "SELECT id_carrier FROM `%s` WHERE external_module_name='%s' AND deleted=0 AND active=1",
+            pSQL(_DB_PREFIX_ . 'carrier'),
+            $this->moduleName
+        );
+
+        $data = Db::getInstance()->query($activeCarriersSQL)->fetchAll(PDO::FETCH_COLUMN);
+        foreach ($data as $carrierID) {
+            $carrier = new Carrier((int)$carrierID);
+            $this->updateDefaultCarrier($carrier);
+            $carrier->delete();
+        }
+
+        $removeConfigSQL = sprintf(
+            "DELETE FROM `%s` WHERE name LIKE '%s'",
+            pSQL(_DB_PREFIX_ . 'configuration'),
+            self::SETTINGS_CARRIER_PREFIX
+        );
+
+        Db::getInstance()->execute($removeConfigSQL);
+        Configuration::deleteByName(self::SETTINGS_SELECTED_CARRIERS);
+
+        $this->removeLegacyCarrier();
     }
 
     /**
@@ -833,7 +1187,8 @@ class SendcloudConnector
         if (Configuration::get('PS_CARRIER_DEFAULT') == (int) $carrier->id) {
             $carriers = Carrier::getCarriers($this->context->language->id);
             foreach ($carriers as $other) {
-                if ($other['active'] && !$other['deleted'] &&
+                if ($other['active'] &&
+                    !$other['deleted'] &&
                     $other['id_carrier'] != $carrier->id
                 ) {
                     Configuration::updateValue('PS_CARRIER_DEFAULT', $other['id_carrier']);
@@ -846,7 +1201,7 @@ class SendcloudConnector
     }
 
     /**
-     * Retrieve the current settings related to SendCloud connection for the
+     * Retrieve the current settings related to Sendcloud connection for the
      * current shop from the database.
      *
      * @return null
@@ -881,7 +1236,7 @@ class SendcloudConnector
     }
 
     /**
-     * Update SendCloud connection settings for the current shop.
+     * Update Sendcloud connection settings for the current shop.
      *
      * @param array $settings New data to be saved, including id/key
      * @return bool true if the settings were succesfully saved.

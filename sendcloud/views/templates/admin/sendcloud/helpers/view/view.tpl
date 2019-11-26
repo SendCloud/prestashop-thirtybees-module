@@ -147,42 +147,104 @@
 
                     {if !empty($service_point_warning)}
                     <p class="alert alert-warning">{$service_point_warning|escape:'htmlall':'UTF-8'}</p>
-                    {elseif $service_point_carrier}
-                    <div class="row">
-                      <div class="col-lg-9">
-                        <p class="success alert alert-success">
-                          {l s='Service Points are enabled and correctly configured.' mod='sendcloud'}
-                        </p>
+                    {else}
+                    <p class="success alert alert-success">
+                      {l s='Service Points are enabled and correctly configured.' mod='sendcloud'}
+                    </p>
+                    {/if}
+
+                    {if !empty($service_point_carriers) && $is_connected}
+                      <div class="row">
+                        <div class="col-lg-12 sendcloud-carriers">
+                          <table class="table tableDnD carrier">
+                            <thead>
+                              <tr class="nodrag nodrop">
+                                <th class="fixed-width-xs center">
+                                  <span class="title_box">
+                                    ID
+                                  </span>
+                                </th>
+                                <th class="sendcloud-carrier__logo-cell">{l s='Logo' mod='sendcloud'}</th>
+                                <th>
+                                  <span class="title_box">
+                                    {l s='Name' mod='sendcloud'}
+                                  </span>
+                                </th>
+                                <th class="fixed-width-sm center">
+                                  <span class="title_box">
+                                    {l s='Status' mod='sendcloud'}
+                                  </span>
+                                </th>
+                                <th>{l s='Shipping locations' mod='sendcloud'}</th>
+                                <th></th>
+                              </tr>
+                            </thead>
+                            {foreach from=$service_point_carriers item='item'}
+                            {assign var='shipping_zones' value=$item.instance->getZones()}
+                            <tbody>
+                              <tr class="sendcloud-carriers__row">
+                                <td class="center">
+                                  {$item.instance->id|escape:'htmlall':'UTF-8'}
+                                </td>
+                                <td class="sendcloud-carrier__logo-cell">
+                                  {if !empty($item.thumbnail)}
+                                  <img src="{$item.thumbnail|escape:'htmlall':'UTF-8'}" alt="" class="imgm img-thumbnail" />
+                                  {/if}
+                                </td>
+                                <td>
+                                  {$item.instance->name|escape:'htmlall':'UTF-8'}
+                                  ({$item.name|escape:'htmlall':'UTF-8'})
+                                </td>
+
+                                <td class="center">
+                                  {if $item.instance->active}
+                                  <span class="list-action-enable action-enabled">
+                                    <i class="icon-check"></i>
+                                  </span>
+                                  {else}
+                                  <span class="list-action-enable action-disabled">
+                                    <i class="icon-remove"></i>
+                                  </span>
+                                  {/if}
+                                </td>
+
+                                <td>
+                                  {if !empty($shipping_zones)}
+                                  <span class="list-action-enable action-enabled">
+                                  <i class="icon-check"></i>
+                                  </span>
+                                  {else}
+                                  <span class="list-action-enable action-disabled">
+                                  <i class="icon-remove"></i>
+                                  </span>
+                                  {/if}
+                                </td>
+
+                                <td class="text-right">
+                                  <div class="btn-group-action">
+                                    <div class="btn-group pull-right">
+                                      <a
+                                        href="{$item.edit_link|escape:'htmlall':'UTF-8'}"
+                                        title="Edit"
+                                        class="edit btn btn-default"
+                                      >
+                                        <i class="icon-pencil"></i> {l s='Edit' mod='sendcloud'}
+                                      </a>
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            </tbody>
+                            {/foreach}
+                          </table>
+                        </div>
                       </div>
-                      <div class="col-lg-3">
-                        <dl>
-                          {assign var='shipping_zones' value=$service_point_carrier->getZones()}
-                          <dt>{l s='Shipping Zones' mod='sendcloud'}</dt>
-                          <dd>
-                            <ul>
-                              {foreach from=$shipping_zones item='zone'}
-                              <li class="zone">{$zone.name|escape:'htmlall':'UTF-8'}</li>
-                              {/foreach}
-                            </ul>
-                          </dd>
-                        </dl>
-                      </div>
-                    </div>
                     {/if}
                   </div>
                 </div>
               </div>
-
-              {if $is_connected && $service_point_script && $service_point_carrier && !$service_point_carrier->deleted}
-              <div class="panel-footer">
-                  <a href="{$service_point_carrier_link|escape:'htmlall':'UTF-8'}" class="btn btn-default button pull-right">
-                  <i class="process-icon-edit"></i>
-                  {l s='Change carrier details.' sprintf=$service_point_carrier->name mod='sendcloud'}
-                  </a>
-              </div>
-              {/if}
             </div>
-            {/if}{* current_shop_id *}
+            {/if}
         </div>
     </div>
 </div>

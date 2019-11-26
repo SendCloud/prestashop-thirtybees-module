@@ -2,10 +2,10 @@
 
 global $_MODULE;
 $_MODULE = array();
-$_MODULE['<{sendcloud}prestashop>carrier-selection_4ee99adf9c49607e276cda9fb9ac09d8'] = 'Het is niet gelukt om de de afhaalpunt informatie op te slaan. Probeer het nog een keer.';
-$_MODULE['<{sendcloud}prestashop>carrier-selection_788863f2fa262c4caa1a24a69311fa79'] = 'Je moet eerst een afhaalpunt selecteren voor je door kunt gaan. ';
-$_MODULE['<{sendcloud}prestashop>carrier-selection_7923077461ea12988127d7c2c3796635'] = 'Je gebruikt een verouderde browser. Update je browser om gebruik te maken van de afhaalpuntkiezer.';
 $_MODULE['<{sendcloud}prestashop>carrier-selection_e71b64ac3ac0a50c31bc603f932e706b'] = 'Selecteer afhaalpunt';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_4ee99adf9c49607e276cda9fb9ac09d8'] = 'Het is niet gelukt om de de afhaalpunt informatie op te slaan. Probeer het nog een keer.';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_788863f2fa262c4caa1a24a69311fa79'] = 'Je moet eerst een afhaalpunt selecteren voor je door kunt gaan. ';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_7923077461ea12988127d7c2c3796635'] = 'Je gebruikt een verouderde browser. Update je browser om gebruik te maken van de afhaalpuntkiezer.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_0a0efae5b3acb92abc05bfd08e1bf659'] = 'Je koppeling is bijna klaar. Je wordt teruggestuurd naar je SendCloud Panel.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_1d3c321ce3f92b28a0b83bf50229f01f'] = 'Niet mogelijk om de afhaalpunten volledig te deactiveren.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_2648ffc4502d56d324b924dabee33e71'] = 'Na de deïnstallatie kun je geen orders meer zien in je SendCloud Panel. Weet je het zeker?';
@@ -30,11 +30,14 @@ $_MODULE['<{sendcloud}prestashop>sendcloud_e55f5072f2140885aa1310871bac9682'] = 
 $_MODULE['<{sendcloud}prestashop>sendcloud_ef2ca428d6153cdcd49601736c5fd970'] = 'De afhaalpunten zijn ingesteld maar nog niet juist geconfigureerd. Activeer de afhaalpunten in je SendCloud panel, om de feature te gebruiken.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_f6784ab79fb72e603fd269824d72c9f8'] = 'SendCloud helpt je webshop groeien, door het verzendproces te optimaliseren. Het verzenden van pakketten was nog nooit zo makkelijk!';
 $_MODULE['<{sendcloud}prestashop>view_43b7f85da18059c7872a568c31ae9be3'] = 'Afhaalpuntlevering';
+$_MODULE['<{sendcloud}prestashop>view_49ee3087348e8d44e1feda1917443987'] = 'Naam';
 $_MODULE['<{sendcloud}prestashop>view_4a721bdbd122abe48c58a368ea41f8e0'] = 'Afhaalpunten zijn locaties waar klanten hun pakketje kunnen laten leveren. (bijv. de supermarkt in de buurt van thuis of het werk).';
 $_MODULE['<{sendcloud}prestashop>view_50faf77287957aa90fa0fb05e9b81adf'] = 'SendCloud instelling zijn winkel specifiek, je dient daarom eerst een winkel te selecteren alvorens je door kunt gaan.';
 $_MODULE['<{sendcloud}prestashop>view_662a805daf14630bbda48fa4978da4f9'] = 'Verzendgebieden';
 $_MODULE['<{sendcloud}prestashop>view_73cd84dcf92541a89a79dc85a310a98f'] = 'Vereiste API middelen';
 $_MODULE['<{sendcloud}prestashop>view_79e3f8bc41adc04b300090328091db7b'] = 'Selecteer een winkel';
+$_MODULE['<{sendcloud}prestashop>view_7dce122004969d56ae2e0245cb754d35'] = 'Wijzig';
+$_MODULE['<{sendcloud}prestashop>view_8c2857a9ad1d8f31659e35e904e20fa6'] = 'Logo';
 $_MODULE['<{sendcloud}prestashop>view_8d760743d6b4934b8b9ede1d18f32872'] = 'Door afhaalpunten aan te zetten kunnen je klanten een servicepunt selecteren tijdens het afrekenproces.';
 $_MODULE['<{sendcloud}prestashop>view_a80d5e18649d829bda78450f7c862711'] = 'Webservice';
 $_MODULE['<{sendcloud}prestashop>view_abd745bf53e40da52bc5a37b618ba5da'] = 'Ga naar het SendCloud Panel';

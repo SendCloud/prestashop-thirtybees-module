@@ -1,4 +1,4 @@
-{* 2016 SendCloud Global B.V.
+{* 2019 Sendcloud Global B.V.
  *
  * NOTICE OF LICENSE
  *
@@ -10,36 +10,31 @@
  * obtain it through the world-wide-web, please send an email
  * to contact@sendcloud.eu so we can send you a copy immediately.
  *
- *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
- *  @copyright 2016 SendCloud Global B.V.
+ *  @author    Sendcloud Global B.V. <contact@sendcloud.eu>
+ *  @copyright 2019 Sendcloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *}
-<div class="sendcloudshipping-{$prestashop_flavor|escape:'htmlall':'UTF-8'} row hidden"
-     id="sendcloudshipping_service_point_picker"
-     data-cart-id="{$cart->id|escape:'htmlall':'UTF-8'}"
-     data-carrier-id="{$carrier->id|escape:'htmlall':'UTF-8'}"
-     data-to-country="{$to_country|escape:'htmlall':'UTF-8'}"
-     data-to-postal-code="{$to_postal_code|escape:'htmlall':'UTF-8'}"
-     data-language="{$language|escape:'htmlall':'UTF-8'}"
-     data-save-url="{$save_endpoint|escape:'htmlall':'UTF-8'}">
-  <div class="col-sm-12">
-    <div class="form-group clearfix">
-      <a class="btn btn-default button button-small" id="sendcloudshipping_service_point_opener"
-        href="#sendcloudshipping_service_point_picker">
+<div
+  data-carrier-id="{$carrier->id|escape:'htmlall':'UTF-8'}"
+  data-carrier-code="{$carrier_code|escape:'htmlall':'UTF-8'}"
+  class="sendcloud-spp sendcloud-spp--{$prestashop_flavor|escape:'htmlall':'UTF-8'} row hidden"
+>
+  <div class="col-sm-12 sendcloud-spp__selection">
+    <div class="sendcloud-spp__selection-trigger">
+      <button
+        type="button"
+        class="sendcloud-spp__pick-button btn btn-default button button-small"
+      >
         <span>
           {l s='Select Service Point' mod='sendcloud'}
+          {if $prestashop_flavor == 'ps17'}
+          <i class="material-icons" aria-hidden="true">chevron_right</i>
+          {else}
           <i class="icon-chevron-right right"></i>
+          {/if}
         </span>
-      </a>
-      <div class="sendcloudshipping-point-details">
-        <input type="hidden" name="sendcloudshipping_service_point" value="{$service_point_details|escape:'htmlall':'UTF-8'}" />
-        <span class="description"></span>
-      </div>
+      </button>
     </div>
-    <p class="hidden alert alert-warning">
-     <span class="outdated hidden">{l s='You are using an outdated browser. Please upgrade your browser to select a service point location.' mod='sendcloud'}</span>
-     <span class="missing hidden">{l s='You must select a Service Point Delivery location before proceding.' mod='sendcloud'}</span>
-     <span class="failure hidden">{l s='Unable to save the service point information. Please, try again.' mod='sendcloud'}</span>
-    </p>
+    <div class="sendcloud-spp__selection-details"></div>
   </div>
 </div>
