@@ -99,6 +99,7 @@ class SendcloudConnector
     private $apiResources = array(
         'addresses',
         'carriers',
+        'currencies',
         'configurations',
         'countries',
         'customers',
