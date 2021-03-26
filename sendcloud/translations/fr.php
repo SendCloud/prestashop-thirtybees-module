@@ -2,10 +2,10 @@
 
 global $_MODULE;
 $_MODULE = array();
-$_MODULE['<{sendcloud}prestashop>carrier-selection_e71b64ac3ac0a50c31bc603f932e706b'] = 'Sélectionner un Point Service';
-$_MODULE['<{sendcloud}prestashop>display-before-carrier_4ee99adf9c49607e276cda9fb9ac09d8'] = 'Impossible de sauvegarder les informations du Point Service. Veuillez essayer de nouveau.';
-$_MODULE['<{sendcloud}prestashop>display-before-carrier_788863f2fa262c4caa1a24a69311fa79'] = 'Vous devez sélectionner un Point Service Point avant de passer à l\'étape suivante.';
-$_MODULE['<{sendcloud}prestashop>display-before-carrier_7923077461ea12988127d7c2c3796635'] = 'Votre navigateur est obsolète. Veuillez mettre à jour votre navigateur pour sélectionner un Point Service.';
+$_MODULE['<{sendcloud}prestashop>carrier-selection_e71b64ac3ac0a50c31bc603f932e706b'] = 'Sélectionner un point relais';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_4ee99adf9c49607e276cda9fb9ac09d8'] = 'Impossible de sauvegarder les informations du point relais. Veuillez essayer de nouveau.';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_788863f2fa262c4caa1a24a69311fa79'] = 'Vous devez sélectionner un point relais Point avant de passer à l\'étape suivante.';
+$_MODULE['<{sendcloud}prestashop>display-before-carrier_7923077461ea12988127d7c2c3796635'] = 'Votre navigateur est obsolète. Veuillez mettre à jour votre navigateur pour sélectionner un point relais.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_0a0efae5b3acb92abc05bfd08e1bf659'] = 'Votre connexion est pratiquement terminée. Redirection vers l\'interface SendCloud en cours..';
 $_MODULE['<{sendcloud}prestashop>sendcloud_1d3c321ce3f92b28a0b83bf50229f01f'] = 'Impossible de désactiver complètement les Points Services.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_2648ffc4502d56d324b924dabee33e71'] = 'Après désinstallation vous ne pourrez plus consulter vos commandes dans l\'interface SendCloud. Êtes-vous sûr de vouloir désinstaller ?';
@@ -14,7 +14,7 @@ $_MODULE['<{sendcloud}prestashop>sendcloud_47edf881ebaff24eb63ee4ca53466105'] = 
 $_MODULE['<{sendcloud}prestashop>sendcloud_4a027b63af5893ed0eb769a6471b1d50'] = 'SendCloud | La solution d’expédition n°1 pour votre boutique en ligne';
 $_MODULE['<{sendcloud}prestashop>sendcloud_55dd50338bccc68ce93f8e436cd0b45e'] = 'Vous devez vous connecter à SendCloud pour pouvoir utiliser cette fonctionnalité.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_5ab1a158a98d15ec5886a81ae2524718'] = 'Vous devez configurer une URL pour cette eShop avant de le connecter avec SendCloud.';
-$_MODULE['<{sendcloud}prestashop>sendcloud_6369ed61c1a7046ef3d8b1647d8db260'] = 'Unable to parse service point data.';
+$_MODULE['<{sendcloud}prestashop>sendcloud_6369ed61c1a7046ef3d8b1647d8db260'] = 'Impossible d\'analyser les données du point relais.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_68387f77aa1ce85cfa3c8a6d128cc912'] = 'Les Points Services du transporteur ne sont pas actifs. Activez le transporteur pour utiliser cette fonctionnalité.';
 $_MODULE['<{sendcloud}prestashop>sendcloud_7258e7251413465e0a3eb58094430bde'] = 'Administration';
 $_MODULE['<{sendcloud}prestashop>sendcloud_83dc91298e5dcddbd3881a96f58e4eab'] = 'Les Points Services ne sont pas disponibles. Veuillez activer les Points Services dans votre interface SendCloud pour pouvoir les utiliser.';
