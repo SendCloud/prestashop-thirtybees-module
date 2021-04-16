@@ -283,7 +283,7 @@ class AdminSendcloudController extends ModuleAdminController
         $shop = $this->context->shop;
 
         $query_params = array(
-            'url_webshop' => $shop->getBaseURL(),
+            'url_webshop' => $shop->getBaseURL(true),
             'api_key' => $data['key'],
             'shop_name' => $shop->name,
             'shop_id' => $shop->id,
