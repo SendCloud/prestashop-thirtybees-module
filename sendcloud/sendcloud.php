@@ -58,7 +58,7 @@ class Sendcloud extends CarrierModule
         $this->tab = 'shipping_logistics';
         $this->version = '1.4.2';
         $this->author = 'Sendcloud';
-        $this->author_uri = 'https://sendcloud.eu';
+        $this->author_uri = 'https://sendcloud.com';
         $this->need_instance = false;
         $this->ps_versions_compliancy = array('min' => '1.5','max'=> '1.7');
         $this->module_key = 'ee5ffe2f68aefd272e994aa5a26e6224';
