@@ -107,7 +107,8 @@ class SendcloudConnector
         'order_states',
         'orders',
         'products',
-        'states'
+        'states',
+        'combinations'
     );
 
     /**
