@@ -7,9 +7,10 @@
  *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *
+ *  @see      https://sendcloud.eu
  */
 
 /**
@@ -18,9 +19,10 @@
  *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *
+ *  @see      https://sendcloud.eu
  */
 class AdminSendcloudController extends ModuleAdminController
 {
@@ -39,14 +41,13 @@ class AdminSendcloudController extends ModuleAdminController
      */
     public $module;
 
-
     /**
      * Configure the administration controller and define some sane defaults.
      */
     public function __construct()
     {
         $this->bootstrap = true;
-        $this->display =  'view';
+        $this->display = 'view';
         parent::__construct();
 
         // Line too long but PS translation tool doesn't recognise it when splitted
@@ -73,9 +74,9 @@ class AdminSendcloudController extends ModuleAdminController
         $this->addJquery();
         $this->addJS($assets_base . '/views/js/admin/configure.js');
         $this->addCSS(
-            array(
+            [
             $assets_base . '/views/css/backoffice.css',
-            )
+            ]
         );
 
         return parent::setMedia($isNewTheme);
@@ -97,6 +98,7 @@ class AdminSendcloudController extends ModuleAdminController
      * Render the main administration screen of the module.
      *
      * @see    views/templates/admin/sendcloud/helpers/view/view.tpl
+     *
      * @return string
      */
     public function renderView()
@@ -107,7 +109,7 @@ class AdminSendcloudController extends ModuleAdminController
         }
 
         $selectedCarriers = $this->connector->getSelectedCarriers();
-        $carriers = array();
+        $carriers = [];
         foreach ($selectedCarriers as $code => $name) {
             $carrier = $this->connector->getOrSynchroniseCarrier($code);
             $editLink = '';
@@ -118,16 +120,16 @@ class AdminSendcloudController extends ModuleAdminController
                 continue;
             }
             $thumbnailName = "carrier_mini_{$carrier->id}_{$this->context->shop->id}.jpg";
-            $imagePath = _PS_SHIP_IMG_DIR_.'/'.$carrier->id.'.jpg';
+            $imagePath = _PS_SHIP_IMG_DIR_ . '/' . $carrier->id . '.jpg';
 
             $thumbnail = ImageManager::thumbnail($imagePath, $thumbnailName, 45);
             // PS enforces escaping variables in templates, and the automatic validation will fail - even for trivial
             // and controlled values, like this one produced by a PrestaShop API itself. Get the URL of the
             // thumbnail and render the image ourselves in the template.
-            $matches = array();
+            $matches = [];
             preg_match('/^<img.+src="([^"]+)".*>$/i', $thumbnail, $matches);
             $thumbnailURL = count($matches) >= 2 ? $matches[1] : '';
-            $carriers[] = array(
+            $carriers[] = [
                 'code' => $code,
                 // NOTE: this is the name used @ Sendcloud (i.e Chronopost, DPD, UPS), not the PrestaShop carrier name
                 // (which the merchant is free to change)
@@ -135,8 +137,8 @@ class AdminSendcloudController extends ModuleAdminController
                 // end NOTE
                 'instance' => $carrier,
                 'edit_link' => $editLink,
-                'thumbnail' => $thumbnailURL
-            );
+                'thumbnail' => $thumbnailURL,
+            ];
         }
 
         $goto_panel_url = SendcloudTools::getPanelURL(
@@ -148,7 +150,7 @@ class AdminSendcloudController extends ModuleAdminController
         $connect_url = $this->processConfiguration();
 
         $this->base_tpl_view = 'view.tpl';
-        $this->tpl_view_vars = array(
+        $this->tpl_view_vars = [
             'can_connect' => $can_connect,
             'multishop_warning' => $this->module->getMultishopWarningImage(),
             'prestashop_flavor' => SendcloudTools::getPSFlavor(),
@@ -160,8 +162,8 @@ class AdminSendcloudController extends ModuleAdminController
             'service_point_script' => $this->connector->getServicePointScript(),
             'service_point_warning' => $this->getWarning($carriers),
             'service_point_carriers' => $carriers,
-            'connect_url' => $connect_url
-        );
+            'connect_url' => $connect_url,
+        ];
 
         return parent::renderView();
     }
@@ -171,7 +173,7 @@ class AdminSendcloudController extends ModuleAdminController
      * redirect to the SendCloud panel (if possible) or return the connection
      * URL to use in a fallback redirect.
      *
-     * @return null|string the connect URL to redirect the user to SendCloud.
+     * @return string|null the connect URL to redirect the user to SendCloud
      */
     protected function processConfiguration()
     {
@@ -202,7 +204,8 @@ class AdminSendcloudController extends ModuleAdminController
      * script are not going to be reported as a warning.
      *
      * @param array $carriers List of carriers to check against status and determine the warnings
-     * @return string The translated warning message.
+     *
+     * @return string the translated warning message
      */
     private function getWarning(array $carriers)
     {
@@ -259,6 +262,7 @@ class AdminSendcloudController extends ModuleAdminController
                 return $this->module->getMessage('warning_carrier_restricted');
             }
         }
+        return '';
     }
 
     /**
@@ -275,6 +279,7 @@ class AdminSendcloudController extends ModuleAdminController
             );
         } catch (SendcloudMissingAPIKeyException $e) {
             $this->errors[] = $this->module->getMessage('missing_api_key');
+
             return false;
         }
 
@@ -282,12 +287,12 @@ class AdminSendcloudController extends ModuleAdminController
         $data = $this->connector->getSettings();
         $shop = $this->context->shop;
 
-        $query_params = array(
+        $query_params = [
             'url_webshop' => $shop->getBaseURL(true),
             'api_key' => $data['key'],
             'shop_name' => $shop->name,
             'shop_id' => $shop->id,
-        );
+        ];
 
         $connect_url = SendcloudTools::getPanelURL(
             $path,

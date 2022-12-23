@@ -7,9 +7,10 @@
  *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *
+ *  @see      https://sendcloud.eu
  */
 
 /**
@@ -18,9 +19,10 @@
  *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *
+ *  @see      https://sendcloud.eu
  */
 class SendcloudTools
 {
@@ -28,7 +30,8 @@ class SendcloudTools
      * Get a more general representation of the current PrestaShop version
      *
      * @return string `ps15` or `ps16`, `ps17`
-     * @throws PrestaShopException when a non-supported version is detected.
+     *
+     * @throws PrestaShopException when a non-supported version is detected
      */
     public static function getPSFlavor()
     {
@@ -71,15 +74,13 @@ class SendcloudTools
      */
     public static function getWSDocs()
     {
-        $ps_docs = array(
-            'ps15' =>
-                'http://doc.prestashop.com/display/PS15/' .
+        $ps_docs = [
+            'ps15' => 'http://doc.prestashop.com/display/PS15/' .
                 'Using+the+PrestaShop+Web+Service',
-            'ps16' =>
-                'http://doc.prestashop.com/display/PS16/' .
+            'ps16' => 'http://doc.prestashop.com/display/PS16/' .
                 'Using+the+PrestaShop+Web+Service',
-            'ps17' => 'http://doc.prestashop.com/display/PS17'
-        );
+            'ps17' => 'http://doc.prestashop.com/display/PS17',
+        ];
 
         return $ps_docs[self::getPSFlavor()];
     }
@@ -89,15 +90,16 @@ class SendcloudTools
      * could be done by setting an env variable `SENDCLOUD_PANEL_URL` with
      * any URL that matches `sendclod.sc` (e.g: `sendcloud.sc.local`)
      *
-     * @param string $path path to append to the base URL.
+     * @param string $path path to append to the base URL
      * @param array|null $params Query params to include in the URL
      * @param bool $
-     * @return string The URL to SendCloud Panel.
+     *
+     * @return string the URL to SendCloud Panel
      */
     public static function getPanelURL($path = '', $params = null, $utm_tracking = false)
     {
         if (!is_array($params)) {
-            $params = array();
+            $params = [];
         }
 
         $panel_url = getenv('SENDCLOUD_PANEL_URL');
@@ -105,7 +107,7 @@ class SendcloudTools
             $panel_url = 'https://panel.sendcloud.sc';
         }
 
-        $utm_params = array();
+        $utm_params = [];
         if ($utm_tracking === true) {
             $utm_params = self::getUTMParams();
         }
@@ -121,7 +123,7 @@ class SendcloudTools
     /**
      * Check if UTM tracking is enabled for the module.
      *
-     * @param Module Sendcloud module instance.
+     * @param Module sendcloud module instance
      */
     public static function isTrackingEnabled(Module $module)
     {
@@ -130,7 +132,7 @@ class SendcloudTools
         // We may explicitly disable UTM tracking on dev/test environments, even
         // with a `trusted` module in place.
         $disable_utm = getenv('SENDCLOUD_DISABLE_UTM') ?
-            (bool)getenv('SENDCLOUD_DISABLE_UTM') : false;
+            (bool) getenv('SENDCLOUD_DISABLE_UTM') : false;
 
         if (self::getPSFlavor() === 'ps15') {
             $module->trusted = true;
@@ -146,20 +148,21 @@ class SendcloudTools
      * environments) and do not send UTM parameters.
      *
      * @param bool $trusted
+     *
      * @return array
      */
     public static function getUTMParams()
     {
-        return array(
+        return [
             'utm_source' => urlencode('PrestaShop Module'),
             'utm_medium' => urlencode('Plugins & Modules'),
-            'utm_campaign' => urlencode('PrestaShop Partnership')
-        );
+            'utm_campaign' => urlencode('PrestaShop Partnership'),
+        ];
     }
 
     public static function httpResponseCode($code = null)
     {
-        $statuses = array(
+        $statuses = [
             '100' => 'Continue',
             '101' => 'Switching Protocols',
             '200' => 'OK',
@@ -197,16 +200,17 @@ class SendcloudTools
             '503' => 'Service Unavailable',
             '504' => 'Gateway Time-out',
             '505' => 'HTTP Version not supported',
-        );
+        ];
 
         $code = $code === null ? '200' : $code;
         $text = isset($statuses[$code]) ? $statuses[$code] : $statuses['200'];
 
         if (function_exists('http_response_code')) {
-            return http_response_code((int)$code);
+            return http_response_code((int) $code);
         } else {
             $protocol = (isset($_SERVER['SERVER_PROTOCOL']) ? $_SERVER['SERVER_PROTOCOL'] : 'HTTP/1.0');
             header($protocol . ' ' . $code . ' ' . $text);
+
             return $code;
         }
     }

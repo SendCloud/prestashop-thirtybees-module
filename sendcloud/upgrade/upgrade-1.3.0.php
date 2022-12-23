@@ -5,11 +5,11 @@
  * @author    Sendcloud Global B.V. <contact@sendcloud.eu>
  * @copyright 2016 Sendcloud Global B.V.
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  * @category  Shipping
- * @package   Sendcloud
- * @link      https://sendcloud.eu
+ *
+ * @see      https://sendcloud.eu
  */
-
 function upgrade_module_1_3_0($module)
 {
     $module->registerHook('displayBeforeCarrier');
@@ -20,5 +20,6 @@ function upgrade_module_1_3_0($module)
     foreach ($allShops as $id) {
         $connector->updateCarrierSelection(new Shop($id));
     }
+
     return true;
 }
