@@ -5,9 +5,10 @@
  *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *
+ *  @see      https://sendcloud.eu
  */
 
 /**
@@ -18,9 +19,10 @@
  *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *
+ *  @see      https://sendcloud.eu
  */
 class SendcloudServicePoint extends ObjectModel
 {
@@ -61,19 +63,18 @@ class SendcloudServicePoint extends ObjectModel
      *
      * @var array
      */
-    public static $definition = array(
+    public static $definition = [
         'table' => 'sendcloud_service_points',
         'primary' => 'id_service_point',
         'multilang' => false,
-        'fields' => array(
-            'id_cart' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
-            'id_address_delivery' => array('type' => self::TYPE_INT, 'validate' => 'isUnsignedId'),
-            'details' => array('type' => self::TYPE_STRING, 'validate' => 'isString'),
-            'date_add' => array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
-            'date_upd' => array('type' => self::TYPE_DATE, 'validate' => 'isDate'),
-        ),
-    );
-
+        'fields' => [
+            'id_cart' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
+            'id_address_delivery' => ['type' => self::TYPE_INT, 'validate' => 'isUnsignedId'],
+            'details' => ['type' => self::TYPE_STRING, 'validate' => 'isString'],
+            'date_add' => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
+            'date_upd' => ['type' => self::TYPE_DATE, 'validate' => 'isDate'],
+        ],
+    ];
 
     /**
      * Retrieve a `SendcloudServicePoint` instance related to the `$cart_id`, or
@@ -84,12 +85,12 @@ class SendcloudServicePoint extends ObjectModel
     public static function getFromCart($cart_id)
     {
         $query = 'SELECT id_service_point
-        FROM `'._DB_PREFIX_.self::$definition['table'].'`
-        WHERE id_cart="'.(int)$cart_id.'"';
+        FROM `' . _DB_PREFIX_ . self::$definition['table'] . '`
+        WHERE id_cart="' . (int) $cart_id . '"';
         $id = Db::getInstance()->getValue($query);
 
         $point = new self($id ? $id : null);
-        $point->id_cart = (int)$cart_id;
+        $point->id_cart = (int) $cart_id;
 
         return $point;
     }
@@ -98,13 +99,14 @@ class SendcloudServicePoint extends ObjectModel
      * Parse the JSON data with the service point information and return an
      * object.
      *
-     * @return stdClass|null returns `null` if there're no details.
+     * @return stdClass|null returns `null` if there're no details
      */
     public function getDetails()
     {
         if (!$this->details) {
             return null;
         }
+
         return Tools::jsonDecode($this->details);
     }
 }

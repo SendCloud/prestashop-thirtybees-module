@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{sendcloud}prestashop>carrier-selection_e71b64ac3ac0a50c31bc603f932e706b'] = 'Selecteer afhaalpunt';
 $_MODULE['<{sendcloud}prestashop>display-before-carrier_4ee99adf9c49607e276cda9fb9ac09d8'] = 'Het is niet gelukt om de de afhaalpunt informatie op te slaan. Probeer het nog een keer.';
 $_MODULE['<{sendcloud}prestashop>display-before-carrier_788863f2fa262c4caa1a24a69311fa79'] = 'Je moet eerst een afhaalpunt selecteren voor je door kunt gaan. ';

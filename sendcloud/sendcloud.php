@@ -7,9 +7,10 @@
  *  @author    SendCloud Global B.V. <contact@sendcloud.eu>
  *  @copyright 2016 SendCloud Global B.V.
  *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  *  @category  Shipping
- *  @package   Sendcloud
- *  @link      https://sendcloud.eu
+ *
+ *  @see      https://sendcloud.eu
  */
 
 // Autoload required, ignoring PSR-1 2.3
@@ -24,9 +25,10 @@ require_once dirname(__FILE__) . '/includes/autoload.php';
  * @author    SendCloud Global B.V. <contact@sendcloud.eu>
  * @copyright 2016 SendCloud Global B.V.
  * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *
  * @category  Shipping
- * @package   Sendcloud
- * @link      https://sendcloud.eu
+ *
+ * @see      https://sendcloud.eu
  */
 class Sendcloud extends CarrierModule
 {
@@ -42,7 +44,6 @@ class Sendcloud extends CarrierModule
      */
     private $messages;
 
-
     /**
      * @var SendcloudConnector
      */
@@ -56,24 +57,24 @@ class Sendcloud extends CarrierModule
         $this->boostrap = true;
         $this->name = 'sendcloud';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.5.0';
+        $this->version = '1.5.2';
         $this->author = 'Sendcloud';
         $this->author_uri = 'https://sendcloud.com';
         $this->need_instance = false;
-        $this->ps_versions_compliancy = array('min' => '1.5','max'=> '1.7');
+        $this->ps_versions_compliancy = ['min' => '1.5', 'max' => '1.7'];
         $this->module_key = 'ee5ffe2f68aefd272e994aa5a26e6224';
 
         parent::__construct();
 
         $this->displayName = $this->l('SendCloud | Europe\'s Number 1 Shipping Tool', $this->name);
 
-        /**
+        /*
          * Using line breaks makes translations to _not_ work properly. We centralize most
          * translatable strings here to avoid spreading them in the module and to ease code review
          * and limit usage of the coding standards ignore comment below.
          */
         // @codingStandardsIgnoreStart
-        $this->messages = array(
+        $this->messages = [
             'admin' => $this->l('Administration', $this->name),
             'already_connected' => $this->l('You already have connected with SendCloud before. You may connect again to update your Integration.', $this->name),
             'api_key' => $this->l('SendCloud API Key', $this->name),
@@ -92,7 +93,7 @@ class Sendcloud extends CarrierModule
             'warning_carrier_zones' => $this->l('You must enable at least one shipping location for the Service Point Delivery carrier before using this feature.', $this->name),
             'warning_no_configuration' => $this->l('Service Points are not enabled. Please enable them on your SendCloud Panel before using this feature.', $this->name),
             'warning_no_connection' => $this->l('You must connect with SendCloud before using this feature.', $this->name),
-        );
+        ];
 
         $this->description = $this->l('SendCloud helps to grow your online store by optimizing the shipping process. Shipping packages have never been that easy!', $this->name);
         $this->confirmUninstall = $this->l('After uninstalling you will not be able to see your orders in the SendCloud Panel. Are you sure?', $this->name);
@@ -108,13 +109,14 @@ class Sendcloud extends CarrierModule
             // Explicitly forbid someone to retrieve any non-defined message
             throw new PrestaShopException('Message identifier not found.');
         }
+
         return $this->messages[$identifier];
     }
 
     /**
      * Install this module
      *
-     * @return boolean
+     * @return bool
      */
     public function install()
     {
@@ -141,13 +143,13 @@ class Sendcloud extends CarrierModule
             $this->registerHook('actionCarrierUpdate') &&
             $this->registerHook('displayCarrierExtraContent') &&
             true
-            ;
+        ;
     }
 
     /**
      * Uninstall this module.
      *
-     * @return boolean
+     * @return bool
      */
     public function uninstall()
     {
@@ -163,7 +165,8 @@ class Sendcloud extends CarrierModule
      * to activate service points. If the configuration is not service point-related, then
      * this hook is a noop.
      *
-     * @param  array parameters received by the hook, contain the target ` $object`.
+     * @param  array parameters received by the hook, contain the target ` $object`
+     *
      * @return null
      */
     public function hookActionObjectAddAfter(array $params)
@@ -174,17 +177,18 @@ class Sendcloud extends CarrierModule
             $this->connector->activateServicePoints($shop, $object);
         } catch (SendcloudServicePointException $e) {
             $webservice = WebserviceRequest::getInstance();
-            $webservice->errors[] = array(
+            $webservice->errors[] = [
                 400,
-                $this->l('Unable to activate service points. Please try again', $this->name)
-            );
+                $this->l('Unable to activate service points. Please try again', $this->name),
+            ];
         }
     }
 
     /**
      * Deactivate service points feature entirely.
      *
-     * @param  array $params
+     * @param array $params
+     *
      * @return void
      */
     public function hookActionObjectDeleteAfter(array $params)
@@ -205,6 +209,7 @@ class Sendcloud extends CarrierModule
      * Track changes in the installed service point carrier
      *
      * @param array $params hook parameters containing the new carrier
+     *
      * @deprecated use `actionCarrierUpdate` instead
      */
     public function hookUpdateCarrier(array $params)
@@ -212,11 +217,10 @@ class Sendcloud extends CarrierModule
         return true;
     }
 
-
     /**
      * Track changes in the installed service point carrier (post 1.7)
      *
-     * * @param array $params hook parameters containing the new carrier.
+     * * @param array $params hook parameters containing the new carrier
      */
     public function hookActionCarrierUpdate(array $params)
     {
@@ -230,6 +234,7 @@ class Sendcloud extends CarrierModule
                 : null;
         }
         $this->connector->updateCarrier($params['id_carrier'], $carrier);
+
         return true;
     }
 
@@ -249,15 +254,16 @@ class Sendcloud extends CarrierModule
 
         $point = SendcloudServicePoint::getFromCart($cart->id);
 
-        $this->smarty->assign(array(
+        $this->smarty->assign([
             'prestashop_flavor' => SendcloudTools::getPSFlavor(),
             'cart' => $cart,
             'to_country' => $country->iso_code,
             'to_postal_code' => $address->postcode,
             'language' => $context->language->language_code,
             'service_point_details' => $point->details,
-            'save_endpoint' => $context->link->getModuleLink($this->name, 'ServicePointSelection')
-        ));
+            'save_endpoint' => $context->link->getModuleLink($this->name, 'ServicePointSelection'),
+        ]);
+
         return $this->display(__FILE__, 'views/templates/hook/display-before-carrier.tpl');
     }
 
@@ -283,7 +289,7 @@ class Sendcloud extends CarrierModule
         }
 
         $allCarriers = $this->getSyncedCarriers();
-        $listOutput = array();
+        $listOutput = [];
 
         foreach ($allCarriers as $code => $carrier) {
             $listOutput[] = $this->renderSelectionButton($carrier, $code);
@@ -296,12 +302,13 @@ class Sendcloud extends CarrierModule
      * Display the service point button for PrestaShop 1.7+
      *
      * @since 1.1.0
+     *
      * @param array $params
+     *
      * @return string
      */
     public function hookDisplayCarrierExtraContent(array $params)
     {
-
         if (Tools::version_compare(_PS_VERSION_, '1.7.0.0', '<')) {
             return '';
         }
@@ -322,11 +329,11 @@ class Sendcloud extends CarrierModule
 
     private function renderSelectionButton(Carrier $carrier, $carrierCode)
     {
-        $this->smarty->assign(array(
+        $this->smarty->assign([
             'carrier' => $carrier,
             'carrier_code' => $carrierCode,
-            'prestashop_flavor' => SendcloudTools::getPSFlavor()
-        ));
+            'prestashop_flavor' => SendcloudTools::getPSFlavor(),
+        ]);
 
         return $this->display(
             __FILE__,
@@ -338,8 +345,9 @@ class Sendcloud extends CarrierModule
      * Inject the required front office assets (CSS and JavaScript) to enable
      * make the service point selection work in the checkout page.
      *
-     * @param  array $params
-     * @return string Additional header HTML to be added in the front office.
+     * @param array $params
+     *
+     * @return string additional header HTML to be added in the front office
      */
     public function hookDisplayHeader($params)
     {
@@ -347,12 +355,12 @@ class Sendcloud extends CarrierModule
         $controller = isset($this->context->controller) ?
             $this->context->controller : null;
 
-        $allowedControllers = array(
+        $allowedControllers = [
             'HistoryController',
             'OrderConfirmationController',
             'OrderController',
             'OrderOpcController',
-        );
+        ];
 
         $is_allowed = !is_null($controller) &&
             in_array(get_class($controller), $allowedControllers);
@@ -372,26 +380,27 @@ class Sendcloud extends CarrierModule
             $controller->registerStylesheet(
                 'module-sendcloud-frontstyles',
                 'modules/' . $this->name . '/views/css/front.css',
-                array('media' => 'screen')
+                ['media' => 'screen']
             );
 
             $controller->registerJavascript(
                 'module-sendcloud-script',
                 $script,
-                array('server' => 'remote')
+                ['server' => 'remote']
             );
         } else {
             $controller->addCSS($this->_path . '/views/css/front.css');
             $controller->addJquery();
             $controller->addJS($script, false);
         }
+        return '';
     }
 
     public function hookDisplayBackOfficeHeader(array $params)
     {
-        $allowedControllers = array(
-            'AdminOrdersController'
-        );
+        $allowedControllers = [
+            'AdminOrdersController',
+        ];
         $ctrl = $this->context->controller;
         $controller = get_class($ctrl);
 
@@ -400,7 +409,7 @@ class Sendcloud extends CarrierModule
         }
 
         $backoffice_css = Tools::toUnderscoreCase($controller);
-        $ctrl->addCSS($this->_path. "views/css/backoffice/{$backoffice_css}.css");
+        $ctrl->addCSS($this->_path . "views/css/backoffice/{$backoffice_css}.css");
     }
 
     /**
@@ -414,8 +423,10 @@ class Sendcloud extends CarrierModule
      * We keep this as a fall back to the service point selection controller for multi-step
      * checkouts as a last resource to save the service point information.
      *
-     * @param  array $params
-     * @return bool `true` if service point info was saved/skipped correctly.
+     * @param array $params
+     *
+     * @return bool `true` if service point info was saved/skipped correctly
+     *
      * @see    SendcloudShippingServicePointSelectionModuleFrontController
      */
     public function hookActionCarrierProcess(array $params)
@@ -437,6 +448,7 @@ class Sendcloud extends CarrierModule
             $ctrl = $this->context->controller;
             $ctrl->errors[] = $this->l('Unable to save service point information.', $this->name);
         }
+
         return true;
     }
 
@@ -449,7 +461,7 @@ class Sendcloud extends CarrierModule
      * - The Shop has a relation with the carrier (when using Multistore the admin may
      *   disable the carrier for certain shops.)
      *
-     * @return bool `true` if every requirement is met.
+     * @return bool `true` if every requirement is met
      */
     public function servicePointsAvailable()
     {
@@ -480,7 +492,8 @@ class Sendcloud extends CarrierModule
      * points.
      *
      * @param Carrier $carrier
-     * @return boolean
+     *
+     * @return bool
      */
     private function isServicePointsEnabledForCarrier(Carrier $carrier)
     {
@@ -502,6 +515,7 @@ class Sendcloud extends CarrierModule
         if ($this->connector->isRestricted($carrier, $shop)) {
             return false;
         }
+
         return true;
     }
 
@@ -509,22 +523,23 @@ class Sendcloud extends CarrierModule
      * Get a list of a `Carrier` objects based on its latest synced ID
      *
      * @param string $code
+     *
      * @return array<Carrier>
      */
     private function getSyncedCarriers($idsOnly = false)
     {
         $shop = Context::getContext()->shop;
         $codes = array_keys($this->connector->getSelectedCarriers());
-        $configNames = array();
+        $configNames = [];
         foreach ($codes as $code) {
             $configNames[$code] = SendcloudConnector::getCarrierConfigName($code);
         }
         $values = Configuration::getMultiple($configNames, null, null, $shop->id);
-        $carrierIDs = is_array($values) ? $values : array();
+        $carrierIDs = is_array($values) ? $values : [];
 
         $configToCodes = array_flip($configNames);
 
-        $carriers = array();
+        $carriers = [];
         foreach ($carrierIDs as $key => $id) {
             if (is_null($id)) {
                 // Configure::getMultiple() may return `null` values for unrecognised keys
@@ -558,9 +573,9 @@ class Sendcloud extends CarrierModule
         }
 
         $this->smarty->assign(
-            array(
-            'point_details' => $point->getDetails()
-            )
+            [
+            'point_details' => $point->getDetails(),
+            ]
         );
 
         $details_html = $this->display(
@@ -593,7 +608,8 @@ class Sendcloud extends CarrierModule
      * a confirmation screen is shown. We use it to send the service
      * point and order details back to SendCloud.
      *
-     * @param  array $params
+     * @param array $params
+     *
      * @return string
      */
     public function hookDisplayOrderConfirmation(array $params)
@@ -613,14 +629,15 @@ class Sendcloud extends CarrierModule
         $shop = $this->context->shop;
         $point = SendcloudServicePoint::getFromCart($order->id_cart);
         $delivery_address = new Address($order->id_address_delivery);
-        $this->smarty->assign(array(
+        $this->smarty->assign([
             'order' => $order,
             'shop_url' => $shop->getBaseURL(),
             'prestashop_flavor' => SendcloudTools::getPSFlavor(),
             'delivery_address' => $delivery_address,
             'point_details' => $point->getDetails(),
             'txt_service_point_details' => $this->getMessage('service_point_details'),
-        ));
+        ]);
+
         return $this->display(
             __FILE__,
             'views/templates/hook/order-confirmation.tpl'
@@ -639,7 +656,7 @@ class Sendcloud extends CarrierModule
         if (SendcloudTools::getPSFlavor() != 'ps15') {
             return '';
         }
-        $id_order = isset($params['id_order']) ? $params['id_order']: null;
+        $id_order = isset($params['id_order']) ? $params['id_order'] : null;
         $order = new Order($id_order);
 
         return $this->displayAdminOrderServicePoint($order);
@@ -649,7 +666,8 @@ class Sendcloud extends CarrierModule
      * Display the tab element for service point details in the Admin
      * order editing view.
      *
-     * @param  array $params
+     * @param array $params
+     *
      * @return string
      */
     public function hookDisplayAdminOrderTabShip(array $params)
@@ -660,12 +678,13 @@ class Sendcloud extends CarrierModule
             return '';
         }
         $this->smarty->assign(
-            array(
+            [
             'prestashop_flavor' => SendcloudTools::getPSFlavor(),
             'point_details' => $point->getDetails(),
             'txt_service_point_details' => $this->getMessage('service_point_details'),
-            )
+            ]
         );
+
         return $this->display(__FILE__, 'views/templates/hook/admin-order-tab-shipping.tpl');
     }
 
@@ -673,12 +692,14 @@ class Sendcloud extends CarrierModule
      * Display the *contents* of the tab containinig the service point details
      * in the Admin order editing view.
      *
-     * @param  array $params
+     * @param array $params
+     *
      * @return string
      */
     public function hookDisplayAdminOrderContentShip(array $params)
     {
         $order = isset($params['order']) ? $params['order'] : null;
+
         return $this->displayAdminOrderServicePoint($order);
     }
 
@@ -686,7 +707,8 @@ class Sendcloud extends CarrierModule
      * Display the service point details in the order details (history)
      * to the customer.
      *
-     * @param  array $params
+     * @param array $params
+     *
      * @return string
      */
     public function hookDisplayOrderDetail(array $params)
@@ -698,11 +720,11 @@ class Sendcloud extends CarrierModule
         }
 
         $this->smarty->assign(
-            array(
+            [
             'point_details' => $point->getDetails(),
             'prestashop_flavor' => SendcloudTools::getPSFlavor(),
             'txt_service_point_details' => $this->getMessage('service_point_details'),
-            )
+            ]
         );
 
         return $this->display(__FILE__, 'views/templates/hook/order-details.tpl');
@@ -728,11 +750,12 @@ class Sendcloud extends CarrierModule
         }
 
         $this->smarty->assign(
-            array(
+            [
             'point_details' => $point->getDetails(),
             'txt_service_point_details' => $this->getMessage('service_point_details'),
-            )
+            ]
         );
+
         return $this->display(
             __FILE__,
             'views/templates/hook/pdf-delivery-slip.tpl'
@@ -757,8 +780,9 @@ class Sendcloud extends CarrierModule
      * ensure that service point configuration was done before to make this a
      * valid choice for the end user.
      *
-     * @param  Cart  $cart
-     * @param  float $shipping_cost
+     * @param Cart $cart
+     * @param float $shipping_cost
+     *
      * @return float The shipping costs. `false` if service points were not enabled.
      */
     public function getOrderShippingCost($cart, $shipping_cost)
@@ -767,13 +791,14 @@ class Sendcloud extends CarrierModule
             return false;
         }
 
-        return (float)$shipping_cost;
+        return (float) $shipping_cost;
     }
 
     /**
      * Apply the same rules found in `SendcloudShipping::getOrderShippingCost()`
      *
-     * @param  object $params order params
+     * @param object $params order params
+     *
      * @return float
      */
     public function getOrderShippingCostExternal($params)
@@ -786,7 +811,7 @@ class Sendcloud extends CarrierModule
      * with any context other than an explicit shop (e.g: All shops, Shop Group), then we display a
      * message with instructions to switch to a Shop-specific view.
      *
-     * @return string the image URL (according to the employee language definition).
+     * @return string the image URL (according to the employee language definition)
      */
     public function getMultishopWarningImage()
     {
@@ -802,6 +827,7 @@ class Sendcloud extends CarrierModule
         if (file_exists($path)) {
             $image = $this->_path . $file;
         }
+
         return $image;
     }
 
@@ -810,7 +836,8 @@ class Sendcloud extends CarrierModule
      * back office. Keep it DRY, since PS 1.6 and PS 1.5 uses different hooks
      * to display service points.
      *
-     * @param  Order $order
+     * @param Order $order
+     *
      * @return string
      */
     private function displayAdminOrderServicePoint(Order $order)
@@ -825,12 +852,13 @@ class Sendcloud extends CarrierModule
         }
 
         $this->smarty->assign(
-            array(
+            [
             'prestashop_flavor' => SendcloudTools::getPSFlavor(),
             'point_details' => $point->getDetails(),
             'txt_service_point_details' => $this->getMessage('service_point_details'),
-            )
+            ]
         );
+
         return $this->display(__FILE__, 'views/templates/hook/admin-order-content-shipping.tpl');
     }
 
@@ -838,7 +866,7 @@ class Sendcloud extends CarrierModule
      * Creates the adminstration tab for the module. It can be found at
      * Administration > SendCloud Shipping after installation.
      *
-     * @return bool true if the tab was sucessfully created.
+     * @return bool true if the tab was sucessfully created
      */
     private function installTab()
     {
@@ -846,7 +874,7 @@ class Sendcloud extends CarrierModule
         $tab->module = $this->name;
         $tab->active = true;
         $tab->class_name = 'AdminSendcloud';
-        $tab->name = array();
+        $tab->name = [];
 
         foreach (Language::getLanguages(true) as $lang) {
             $tab->name[$lang['id_lang']] = 'Sendcloud';
@@ -854,19 +882,22 @@ class Sendcloud extends CarrierModule
 
         $parent = Tools::version_compare(_PS_VERSION_, '1.7.0.0', '>=') ?
             Tab::getIdFromClassName('AdminParentShipping') : Tab::getIdFromClassName('AdminShipping');
-        $tab->id_parent = (int)$parent;
+        $tab->id_parent = (int) $parent;
+
         return $tab->add();
     }
 
     /**
      * Removes the adminstration tab created by SendcloudShipping::installTab()
+     *
      * @return bool
      */
     private function uninstallTab()
     {
-        $id_tab = (int)Tab::getIdFromClassName('AdminSendcloud');
+        $id_tab = (int) Tab::getIdFromClassName('AdminSendcloud');
         if ($id_tab) {
             $tab = new Tab($id_tab);
+
             return $tab->delete();
         }
         // A tab may not be created at all, so there's no reason to fail
@@ -878,18 +909,19 @@ class Sendcloud extends CarrierModule
      * Create necessary entities in the database in order to make the module
      * to work.
      *
-     * @return bool `true` if every entity gets created correctly.
+     * @return bool `true` if every entity gets created correctly
      */
     private function installSQL()
     {
         $queries = include dirname(__FILE__) . '/sql/install.php';
+
         return $this->performInstallQueries($queries);
     }
 
     /**
      * Remove every module specific entities from the database.
      *
-     * @return bool `true` if every entity is removed correctly.
+     * @return bool `true` if every entity is removed correctly
      */
     private function uninstallSQL()
     {
@@ -900,14 +932,16 @@ class Sendcloud extends CarrierModule
         );
         Db::getInstance()->execute($removeConfig);
         $queries = include dirname(__FILE__) . '/sql/uninstall.php';
+
         return $this->performInstallQueries($queries);
     }
 
     /**
      * Execute a collection of SQL queries of the install/uninstall procedures.
      *
-     * @param  array $queries List of raw SQL queries to execute.
-     * @return bool `true` if all queries were executed successfuly.
+     * @param array $queries list of raw SQL queries to execute
+     *
+     * @return bool `true` if all queries were executed successfuly
      */
     private function performInstallQueries(array $queries)
     {
@@ -916,14 +950,15 @@ class Sendcloud extends CarrierModule
                 return false;
             }
         }
+
         return true;
     }
 
     /**
      * Saves the service point information based on `$raw_data`.
      *
-     * @param Cart   $cart
-     * @param string $raw_data URL-encoded JSON data about the service point.
+     * @param Cart $cart
+     * @param string $raw_data URL-encoded JSON data about the service point
      */
     private function saveServicePoint(Cart $cart, $raw_data)
     {
@@ -937,6 +972,7 @@ class Sendcloud extends CarrierModule
         if (!$point->save()) {
             return false;
         }
+
         return $point;
     }
 

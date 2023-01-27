@@ -1,7 +1,7 @@
 <?php
 
 global $_MODULE;
-$_MODULE = array();
+$_MODULE = [];
 $_MODULE['<{sendcloud}prestashop>carrier-selection_e71b64ac3ac0a50c31bc603f932e706b'] = 'Selecciona Punto de Servicio';
 $_MODULE['<{sendcloud}prestashop>display-before-carrier_4ee99adf9c49607e276cda9fb9ac09d8'] = 'No se puede guardar la información de los puntos de servicio. Por favor, inténtalo de nuevo.';
 $_MODULE['<{sendcloud}prestashop>display-before-carrier_788863f2fa262c4caa1a24a69311fa79'] = 'Debes seleccionar una ubicación de de punto de servicio antes de proceder.';
