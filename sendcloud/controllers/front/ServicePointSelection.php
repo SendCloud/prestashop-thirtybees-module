@@ -44,17 +44,32 @@ class SendcloudServicePointSelectionModuleFrontController extends ModuleFrontCon
         $details = Tools::getValue('service_point_data');
         if (!$details && $action === 'save') {
             SendcloudTools::httpResponseCode(400);
-            $this->ajaxDie(Tools::jsonEncode([
-                'error' => $module->getMessage('no_service_point'),
-            ]));
+            if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+                $this->ajaxDie(json_encode([
+                    'error' => $module->getMessage('no_service_point'),
+                ]));
+            } else {
+                $this->ajaxDie(Tools::jsonEncode([
+                    'error' => $module->getMessage('no_service_point'),
+                ]));
+            }
         }
-
-        $pointData = Tools::jsonDecode($details);
+        if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+            $pointData = json_decode($details);
+        } else {
+            $pointData = Tools::jsonDecode($details);
+        }
         if (!$pointData && $action === 'save') {
             SendcloudTools::httpResponseCode(400);
-            $this->ajaxDie(Tools::jsonEncode([
-                'error' => $module->getMessage('unable_to_parse'),
-            ]));
+            if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+                $this->ajaxDie(json_encode([
+                    'error' => $module->getMessage('unable_to_parse'),
+                ]));
+            } else {
+                $this->ajaxDie(Tools::jsonEncode([
+                    'error' => $module->getMessage('unable_to_parse'),
+                ]));
+            }
         }
 
         $point = SendcloudServicePoint::getFromCart($cart->id);

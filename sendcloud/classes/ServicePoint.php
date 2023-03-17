@@ -106,7 +106,10 @@ class SendcloudServicePoint extends ObjectModel
         if (!$this->details) {
             return null;
         }
-
-        return Tools::jsonDecode($this->details);
+        if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+            return json_decode($this->details);
+        } else {
+            return Tools::jsonDecode($this->details);
+        }
     }
 }

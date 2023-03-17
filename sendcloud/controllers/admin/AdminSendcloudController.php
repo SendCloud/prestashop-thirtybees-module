@@ -262,6 +262,7 @@ class AdminSendcloudController extends ModuleAdminController
                 return $this->module->getMessage('warning_carrier_restricted');
             }
         }
+
         return '';
     }
 

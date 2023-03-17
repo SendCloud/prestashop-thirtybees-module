@@ -451,7 +451,11 @@ class SendcloudConnector
         if (self::SETTINGS_SELECTED_CARRIERS === $object->name) {
             // Normalize value: It must be a valid JSON
             try {
-                $newCarriers = Tools::jsonDecode($object->value, true);
+                if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+                    $newCarriers = json_decode($object->value, true);
+                } else {
+                    $newCarriers = Tools::jsonDecode($object->value, true);
+                }
                 if (empty($newCarriers)) {
                     throw new UnexpectedValueException('At least one carrier must be selected');
                 }
@@ -483,7 +487,11 @@ class SendcloudConnector
     {
         $shop = $shop === null ? Context::getContext()->shop : $shop;
         $configuration = $this->getShopConfiguration($shop, self::SETTINGS_SELECTED_CARRIERS);
-        $carriers = Tools::jsonDecode($configuration, true);
+        if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+            $carriers = json_decode($configuration, true);
+        } else {
+            $carriers = Tools::jsonDecode($configuration, true);
+        }
 
         return is_array($carriers) ? $carriers : [];
     }
@@ -1176,7 +1184,11 @@ class SendcloudConnector
         ));
 
         foreach ($otherSelections as $config) {
-            $selection = Tools::jsonDecode($config, true);
+            if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+                $selection = json_decode($config, true);
+            } else {
+                $selection = Tools::jsonDecode($config, true);
+            }
             $selectedCodes = is_array($selection) ? $selection : [];
             $carrierInUse = in_array($code, array_keys($selectedCodes));
             if ($carrierInUse === true) {
@@ -1261,19 +1273,29 @@ class SendcloudConnector
         $settings = Configuration::getGlobalValue(self::SETTINGS_CONNECT);
 
         if (!$settings) {
+            $this->connectSettings = $empty;
+
             return $empty;
         }
 
-        $settings = Tools::jsonDecode($settings, true);
+        if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+            $settings = json_decode($settings, true);
+        } else {
+            $settings = Tools::jsonDecode($settings, true);
+        }
+
         if (empty($settings) ||
             !isset($settings['id']) || is_null($settings['id']) ||
             !isset($settings['key']) || is_null($settings['key'])
         ) {
+            $this->connectSettings = $empty;
+
             return $empty;
         }
 
         if (!WebserviceKey::keyExists($settings['key'])) {
             Configuration::deleteByName(self::SETTINGS_CONNECT);
+            $this->connectSettings = $empty;
 
             return $empty;
         }
@@ -1281,7 +1303,6 @@ class SendcloudConnector
         if (!isset($settings['shops'])) {
             $settings['shops'] = [];
         }
-
         $this->connectSettings = $settings;
     }
 
@@ -1294,7 +1315,11 @@ class SendcloudConnector
      */
     private function updateSettings(array $settings)
     {
-        $saved = Configuration::updateGlobalValue(self::SETTINGS_CONNECT, Tools::jsonEncode($settings));
+        if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+            $saved = Configuration::updateGlobalValue(self::SETTINGS_CONNECT, json_encode($settings));
+        } else {
+            $saved = Configuration::updateGlobalValue(self::SETTINGS_CONNECT, Tools::jsonEncode($settings));
+        }
 
         if (!$saved) {
             throw new PrestaShopException($this->l('Unable to update the connection settings.', $this->module->name));

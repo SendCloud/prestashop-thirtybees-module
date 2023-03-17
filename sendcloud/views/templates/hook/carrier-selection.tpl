@@ -27,7 +27,7 @@
       >
         <span>
           {l s='Select Service Point' mod='sendcloud'}
-          {if $prestashop_flavor == 'ps17'}
+          {if $prestashop_flavor == 'ps17' || $prestashop_flavor == 'ps80'}
           <i class="material-icons" aria-hidden="true">chevron_right</i>
           {else}
           <i class="icon-chevron-right right"></i>

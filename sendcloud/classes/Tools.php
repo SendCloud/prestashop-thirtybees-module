@@ -29,12 +29,15 @@ class SendcloudTools
     /**
      * Get a more general representation of the current PrestaShop version
      *
-     * @return string `ps15` or `ps16`, `ps17`
+     * @return string `ps15` or `ps16`, `ps17`, `ps80`
      *
      * @throws PrestaShopException when a non-supported version is detected
      */
     public static function getPSFlavor()
     {
+        if (Tools::version_compare(_PS_VERSION_, '8.0.0.0', '>=')) {
+            return 'ps80';
+        }
         if (Tools::version_compare(_PS_VERSION_, '1.7.0.0', '>=')) {
             return 'ps17';
         }
@@ -80,6 +83,7 @@ class SendcloudTools
             'ps16' => 'http://doc.prestashop.com/display/PS16/' .
                 'Using+the+PrestaShop+Web+Service',
             'ps17' => 'http://doc.prestashop.com/display/PS17',
+            'ps80' => 'https://devdocs.prestashop-project.org/8/',
         ];
 
         return $ps_docs[self::getPSFlavor()];
@@ -135,6 +139,8 @@ class SendcloudTools
             (bool) getenv('SENDCLOUD_DISABLE_UTM') : false;
 
         if (self::getPSFlavor() === 'ps15') {
+            $module->trusted = true;
+        } elseif (self::getPSFlavor() === 'ps80') {
             $module->trusted = true;
         }
 
