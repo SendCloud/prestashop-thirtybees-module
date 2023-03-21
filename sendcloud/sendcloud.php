@@ -57,11 +57,11 @@ class Sendcloud extends CarrierModule
         $this->boostrap = true;
         $this->name = 'sendcloud';
         $this->tab = 'shipping_logistics';
-        $this->version = '1.5.2';
+        $this->version = '1.6.0';
         $this->author = 'Sendcloud';
         $this->author_uri = 'https://sendcloud.com';
         $this->need_instance = false;
-        $this->ps_versions_compliancy = ['min' => '1.5', 'max' => '1.7'];
+        $this->ps_versions_compliancy = ['min' => '1.5', 'max' => '8.1'];
         $this->module_key = 'ee5ffe2f68aefd272e994aa5a26e6224';
 
         parent::__construct();
@@ -393,6 +393,7 @@ class Sendcloud extends CarrierModule
             $controller->addJquery();
             $controller->addJS($script, false);
         }
+
         return '';
     }
 
@@ -963,8 +964,14 @@ class Sendcloud extends CarrierModule
     private function saveServicePoint(Cart $cart, $raw_data)
     {
         $details = urldecode($raw_data);
-        if (!Tools::jsonDecode($details)) {
-            return false;
+        if (Tools::version_compare(_PS_VERSION_, '1.8.0.0', '>=')) {
+            if (!json_decode($details)) {
+                return false;
+            }
+        } else {
+            if (!Tools::jsonDecode($details)) {
+                return false;
+            }
         }
 
         $point = SendcloudServicePoint::getFromCart($cart->id);
