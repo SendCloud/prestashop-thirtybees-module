@@ -54,7 +54,7 @@ class Sendcloud extends CarrierModule
      */
     public function __construct()
     {
-        $this->boostrap = true;
+        $this->bootstrap = true;
         $this->name = 'sendcloud';
         $this->tab = 'shipping_logistics';
         $this->version = '1.6.0';
