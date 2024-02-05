@@ -1,3 +1,7 @@
+# Repository not maintained here anymore
+
+You can find the plugin directly [here](https://addons.prestashop.com/en/shipping-carriers/24482-sendcloud-shipping-returns-automation.html)
+
 SendCloud module for PrestaShop
 ===
 
